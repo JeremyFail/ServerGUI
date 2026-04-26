@@ -10,14 +10,21 @@ public class ServerSettings implements Serializable {
 	private String customArgs;
 	private String customSwitches;
 	private File jarFile;
+	/** Path to a custom java/javaw executable. Null or empty means use the default (same JVM as the app). */
+	private String customJvmPath;
 	
 	public ServerSettings(Object minRam, Object maxRam, String customArgs, String customSwitches, File jarFile) {
+		this(minRam, maxRam, customArgs, customSwitches, jarFile, null);
+	}
+
+	public ServerSettings(Object minRam, Object maxRam, String customArgs, String customSwitches, File jarFile, String customJvmPath) {
 		this.minRam = minRam;
 		this.maxRam = maxRam;
 		
 		this.customArgs = customArgs;
 		this.customSwitches = customSwitches;
 		this.jarFile = jarFile;
+		this.customJvmPath = (customJvmPath != null && !customJvmPath.isEmpty()) ? customJvmPath : null;
 	}
 	
 	public Object getMinRam() {
@@ -50,6 +57,14 @@ public class ServerSettings implements Serializable {
 	
 	public void setJarFile(File jarFile) {
 		this.jarFile = jarFile;
+	}
+
+	public String getCustomJvmPath() {
+		return (customJvmPath != null && !customJvmPath.isEmpty()) ? customJvmPath : null;
+	}
+
+	public void setCustomJvmPath(String customJvmPath) {
+		this.customJvmPath = (customJvmPath != null && !customJvmPath.isEmpty()) ? customJvmPath : null;
 	}
 	
 	public void setMaxRam(Object maxRam) {

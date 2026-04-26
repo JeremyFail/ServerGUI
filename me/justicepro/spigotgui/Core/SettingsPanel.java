@@ -65,6 +65,7 @@ public class SettingsPanel extends JPanel {
 	private AccentColorPanel accentColorPanel;
 	private JLabel accentThemeControlledLabel;
 	private JTextField serverFileField;
+	private JTextField customJvmPathField;
 
 	public SettingsPanel(SpigotGUI gui, Settings settings, ServerSettings serverSettings) {
 		super(new BorderLayout());
@@ -99,6 +100,11 @@ public class SettingsPanel extends JPanel {
 		fontSpinner.setValue(settings.getFontSize());
 		customJvmArgsField.setText(serverSettings.getCustomArgs());
 		customJvmSwitchesField.setText(serverSettings.getCustomSwitches());
+
+		customJvmPathField = new JTextField(30);
+		customJvmPathField.setEditable(false);
+		String savedJvmPath = serverSettings.getCustomJvmPath();
+		customJvmPathField.setText(savedJvmPath != null && !savedJvmPath.isEmpty() ? savedJvmPath : "<default>");
 
 		JLabel lblCustomArgs = new JLabel("Custom Arguments");
 		JLabel lblCustomSwitches = new JLabel("Custom Switches");
@@ -302,11 +308,56 @@ public class SettingsPanel extends JPanel {
 				}
 			}
 		});
+		// --- Custom JVM row (row 0) ---
+		JLabel lblCustomJvm = new JLabel("Custom JVM");
+		String jvmTip = "<html>Path to the java or javaw executable used to launch the server.<br>"
+				+ "Usually not needed unless you are running a version of Minecraft that<br>"
+				+ "requires a specific Java version. When not set, the same JVM that<br>"
+				+ "launched this application will be used.</html>";
+		lblCustomJvm.setToolTipText(jvmTip);
+		customJvmPathField.setToolTipText(jvmTip);
+		JButton btnBrowseJvm = new JButton("Browse...");
+		btnBrowseJvm.setToolTipText(jvmTip);
+		JButton btnResetJvm = new JButton("Reset");
+		btnResetJvm.setToolTipText("Clear the custom JVM path and use the default (same JVM as this app).");
+		btnBrowseJvm.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setDialogTitle("Select Java Executable");
+				fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				String current = customJvmPathField.getText();
+				if (!current.isEmpty() && !current.equals("<default>")) {
+					File cur = new File(current);
+					if (cur.getParentFile() != null) fileChooser.setCurrentDirectory(cur.getParentFile());
+				}
+				if (fileChooser.showOpenDialog(SettingsPanel.this) == JFileChooser.APPROVE_OPTION) {
+					customJvmPathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+				}
+			}
+		});
+		btnResetJvm.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				customJvmPathField.setText("<default>");
+			}
+		});
+		JPanel jvmBtnPanel = new JPanel();
+		jvmBtnPanel.setLayout(new BoxLayout(jvmBtnPanel, BoxLayout.LINE_AXIS));
+		jvmBtnPanel.add(btnBrowseJvm);
+		jvmBtnPanel.add(Box.createHorizontalStrut(4));
+		jvmBtnPanel.add(btnResetJvm);
+		JPanel jvmRow = new JPanel(new BorderLayout(8, 0));
+		jvmRow.add(customJvmPathField, BorderLayout.CENTER);
+		jvmRow.add(jvmBtnPanel, BorderLayout.EAST);
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 0; c.gridy = 0; c.weightx = 0; jvmSection.add(lblCustomSwitches, c);
+		c.gridx = 0; c.gridy = 0; c.weightx = 0; jvmSection.add(lblCustomJvm, c);
+		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(jvmRow, c);
+		c.gridwidth = 1;
+		c.gridy = 1; c.gridx = 0; c.weightx = 0; jvmSection.add(lblCustomSwitches, c);
 		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(switchesScroll, c);
 		c.gridwidth = 1;
-		c.gridy = 1; c.gridx = 0; c.weightx = 0; jvmSection.add(lblCustomArgs, c);
+		c.gridy = 2; c.gridx = 0; c.weightx = 0; jvmSection.add(lblCustomArgs, c);
 		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(argsScroll, c);
 		c.gridwidth = 1;
 		int spinnerW = 90;
@@ -317,15 +368,16 @@ public class SettingsPanel extends JPanel {
 		lblMaxRam.setToolTipText("Maximum heap size in MB allocated to the server JVM.");
 		maxRam.setToolTipText(lblMaxRam.getToolTipText());
 		c.fill = GridBagConstraints.NONE;
-		c.gridy = 2; c.gridx = 0; c.weightx = 0; jvmSection.add(lblMinRam, c);
+		c.gridy = 3; c.gridx = 0; c.weightx = 0; jvmSection.add(lblMinRam, c);
 		c.gridx = 1; c.weightx = 0; jvmSection.add(minRam, c);
 		c.gridx = 2; c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL; jvmSection.add(new JPanel(), c);
 		c.fill = GridBagConstraints.NONE;
-		c.gridy = 3; c.gridx = 0; c.weightx = 0; jvmSection.add(lblMaxRam, c);
+		c.gridy = 4; c.gridx = 0; c.weightx = 0; jvmSection.add(lblMaxRam, c);
 		c.gridx = 1; c.weightx = 0; jvmSection.add(maxRam, c);
 		c.gridx = 2; c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL; jvmSection.add(new JPanel(), c);
 		customJvmArgsField.setMinimumSize(new Dimension(60, 20));
 		customJvmSwitchesField.setMinimumSize(new Dimension(60, 20));
+		customJvmPathField.setMinimumSize(new Dimension(60, 20));
 		settingsContentInner.add(jvmSection);
 
 		// --- Section: Files ---
@@ -471,6 +523,14 @@ public class SettingsPanel extends JPanel {
 	public JCheckBox getConsoleWrapWordBreakOnlyCheckBox() { return consoleWrapWordBreakOnlyCheckBox; }
 	public AccentColorPanel getAccentColorPanel() { return accentColorPanel; }
 
+	/** Returns the custom JVM path entered by the user, or null if set to the default. */
+	public String getCustomJvmPath() {
+		if (customJvmPathField == null) return null;
+		String text = customJvmPathField.getText();
+		if (text == null || text.isEmpty() || text.equals("<default>")) return null;
+		return text;
+	}
+
 	public int getShutdownCountdownSeconds() {
 		if (shutdownCountdownSpinner != null) {
 			Object v = shutdownCountdownSpinner.getValue();
@@ -500,7 +560,8 @@ public class SettingsPanel extends JPanel {
 				((Number) maxRam.getValue()).intValue(),
 				customJvmArgsField.getText(),
 				customJvmSwitchesField.getText(),
-				jarFile
+				jarFile,
+				getCustomJvmPath()
 			),
 			getSelectedTheme(),
 			fontSpinner.getValue(),

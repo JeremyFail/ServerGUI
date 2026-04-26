@@ -687,7 +687,7 @@ public class SpigotGUI extends JFrame {
 		if (server != null) {
 
 			if (!server.isRunning()) {
-				server = new Server(jarFile, noguiArgs(args), switches);
+				server = new Server(jarFile, noguiArgs(args), switches, settingsPanel.getCustomJvmPath());
 				try {
 					server.start();
 				} catch (IOException | ProcessException e) {
@@ -700,7 +700,7 @@ public class SpigotGUI extends JFrame {
 			}
 
 		}else {
-			server = new Server(jarFile, noguiArgs(args), switches);
+			server = new Server(jarFile, noguiArgs(args), switches, settingsPanel.getCustomJvmPath());
 			try {
 				server.start();
 			} catch (IOException | ProcessException e) {

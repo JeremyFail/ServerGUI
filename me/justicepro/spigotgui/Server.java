@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import me.justicepro.spigotgui.Core.SpigotGUI;
 
@@ -16,13 +17,20 @@ public class Server {
 	private File jar;
 	private String switches;
 	private String arguments;
+	/** Custom java/javaw executable path. Null means use the same JVM as the app. */
+	private String customJvmPath;
 	
 	private Process process;
 	
 	public Server(File jar, String arguments, String switches) {
+		this(jar, arguments, switches, null);
+	}
+
+	public Server(File jar, String arguments, String switches, String customJvmPath) {
 		this.jar = jar;
 		this.arguments = arguments;
 		this.switches = switches;
+		this.customJvmPath = (customJvmPath != null && !customJvmPath.isEmpty()) ? customJvmPath : null;
 	}
 	
 	public Thread start(String arguments, String switches) throws IOException, ProcessException {
@@ -38,11 +46,13 @@ public class Server {
 			// stdin are unreliable; bare "java" also depends on PATH rather than the runtime that
 			// started this app. Merge stderr so launcher errors (e.g. bad flags) appear in the console.
 			String ansiFlag = "-Dnet.kyori.ansi.colorLevel=indexed16";
-			JvmSwitchNormalization norm = normalizeJvmSwitchesWithNotes(switches);
+			String javaExe = resolveJavaExecutable();
+			int targetFeature = (customJvmPath != null) ? probeJvmFeatureVersion(javaExe) : javaFeatureVersion();
+			JvmSwitchNormalization norm = normalizeJvmSwitchesWithNotes(switches, targetFeature);
 			SpigotGUI.appendJvmNormalizationWarnings(norm.warnings);
 
 			List<String> cmd = new ArrayList<>();
-			cmd.add(resolveJavaExecutable());
+			cmd.add(javaExe);
 			appendSplitTokens(cmd, norm.normalized);
 			cmd.add(ansiFlag);
 			cmd.add("-jar");
@@ -117,7 +127,10 @@ public class Server {
 		return args;
 	}
 
-	private static String resolveJavaExecutable() {
+	private String resolveJavaExecutable() {
+		if (customJvmPath != null && !customJvmPath.isEmpty()) {
+			return customJvmPath;
+		}
 		String home = System.getProperty("java.home");
 		if (home != null) {
 			File win = new File(home, "bin" + File.separator + "java.exe");
@@ -161,19 +174,27 @@ public class Server {
 	 * Maps legacy JVM flags from older tutorials and IDEs to forms that work on current JDKs.
 	 * <ul>
 	 *   <li>{@code -Xnoagent} — removed (invalid / ignored on modern VMs; was for obsolete JVMDI)
-	 *   <li>{@code -Xdebug} — removed (deprecated JDK 22+; JDWP via {@code -agentlib:jdwp} does not need it)
-	 *   <li>{@code -Xrunjdwp:...} — rewritten to {@code -agentlib:jdwp=...}
+	 *   <li>{@code -Xdebug} — removed only on Java 22+ where it is invalid; kept on 8–21 where it is accepted
+	 *   <li>{@code -Xrunjdwp:...} — rewritten to {@code -agentlib:jdwp=...} (works on all versions ≥ 8)
 	 *   <li>{@code -Djava.compiler=...} — on JDK 21+ removed (obsolete). We do <em>not</em> inject {@code -Xint};
 	 *       that would disable the JIT and cripple server performance; add {@code -Xint} manually only if you want interpreted-only mode.
 	 * </ul>
 	 * Non-empty {@link JvmSwitchNormalization#warnings} should be shown in the console (see {@link SpigotGUI#appendJvmNormalizationWarnings}).
+	 * Delegates to {@link #normalizeJvmSwitchesWithNotes(String, int)} using the host JVM version.
 	 */
 	static JvmSwitchNormalization normalizeJvmSwitchesWithNotes(String switches) {
+		return normalizeJvmSwitchesWithNotes(switches, javaFeatureVersion());
+	}
+
+	/**
+	 * Version-aware form: {@code feature} is the major version of the JVM that will actually run the server
+	 * (may differ from the host JVM when a custom JVM path is configured).
+	 */
+	static JvmSwitchNormalization normalizeJvmSwitchesWithNotes(String switches, int feature) {
 		List<String> warnings = new ArrayList<>();
 		if (switches == null || switches.trim().isEmpty()) {
 			return new JvmSwitchNormalization("", warnings);
 		}
-		int feature = javaFeatureVersion();
 		String[] parts = switches.trim().split("\\s+");
 		List<String> out = new ArrayList<>();
 		for (String t : parts) {
@@ -186,7 +207,13 @@ public class Server {
 				continue;
 			}
 			if ("-xdebug".equals(lower)) {
-				warnings.add("Removed -Xdebug (unnecessary with JDWP; removed on newer JDKs).");
+				if (feature >= 22) {
+					// Java 22 removed -Xdebug entirely; it causes a launcher error.
+					warnings.add("Removed -Xdebug (invalid on Java " + feature + "; JDWP via -agentlib:jdwp does not need it).");
+					continue;
+				}
+				// Java 8–21: -Xdebug is accepted (deprecated post-9 but harmless); leave it.
+				out.add(t);
 				continue;
 			}
 			if (lower.startsWith("-xrunjdwp:")) {
@@ -214,15 +241,55 @@ public class Server {
 		return new JvmSwitchNormalization(normalized, warnings.isEmpty() ? Collections.emptyList() : warnings);
 	}
 
-	private static int javaFeatureVersion() {
+	/**
+	 * Probes the major feature version of the given java executable by running {@code <exe> -version}
+	 * and parsing its output. Falls back to the host JVM version if the probe fails or times out.
+	 * The minimum returned value is 8.
+	 */
+	private static int probeJvmFeatureVersion(String javaExe) {
 		try {
-			String v = System.getProperty("java.specification.version", "8");
-			if (v.startsWith("1.")) {
-				if ("1.8".equals(v)) {
-					return 8;
+			Process p = new ProcessBuilder(javaExe, "-version")
+					.redirectErrorStream(true)
+					.start();
+			String versionLine = null;
+			try (Scanner sc = new Scanner(p.getInputStream(), StandardCharsets.UTF_8.name())) {
+				while (sc.hasNextLine()) {
+					String line = sc.nextLine().trim();
+					if (versionLine == null && line.contains("version \"")) {
+						versionLine = line;
+					}
 				}
-				return Integer.parseInt(v.substring(2));
 			}
+			p.waitFor(5, TimeUnit.SECONDS);
+			if (versionLine != null) {
+				int q1 = versionLine.indexOf('"');
+				int q2 = versionLine.lastIndexOf('"');
+				if (q1 >= 0 && q2 > q1) {
+					return parseFeatureVersion(versionLine.substring(q1 + 1, q2));
+				}
+			}
+		} catch (Exception e) {
+			// Fall through to host version fallback
+		}
+		return javaFeatureVersion();
+	}
+
+	private static int javaFeatureVersion() {
+		return parseFeatureVersion(System.getProperty("java.specification.version", "8"));
+	}
+
+	private static int parseFeatureVersion(String v) {
+		if (v == null) return 8;
+		v = v.trim();
+		try {
+			if (v.startsWith("1.")) {
+				// Legacy format: "1.8.x" → 8, "1.7.x" → 7, etc.
+				if (v.startsWith("1.8")) return 8;
+				String rest = v.substring(2);
+				int dot = rest.indexOf('.');
+				return Integer.parseInt(dot < 0 ? rest : rest.substring(0, dot));
+			}
+			// Modern format: "21.0.3", "17", etc.
 			int dot = v.indexOf('.');
 			return Integer.parseInt(dot < 0 ? v : v.substring(0, dot));
 		} catch (Exception e) {
