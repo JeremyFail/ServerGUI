@@ -4,7 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
+
+import me.justicepro.spigotgui.Core.SpigotGUI;
 
 public class Server {
 	
@@ -21,33 +26,34 @@ public class Server {
 	}
 	
 	public Thread start(String arguments, String switches) throws IOException, ProcessException {
-		
-		boolean isWindows = System.getProperty("os.name")
-				  .toLowerCase().startsWith("windows");
-		
+
 		if (process!=null) {
 			if (process.isAlive()) {
 				throw new ProcessException();
 			}
 		}else {
 			System.out.println("Started Server");
-			
-			if (isWindows) {
-				ProcessBuilder pb = new ProcessBuilder("cmd");
-				pb.environment().put("TERM", "xterm-256color");
-				process = pb.start();
-			}else {
-				ProcessBuilder pb = new ProcessBuilder("sh");
-				pb.environment().put("TERM", "xterm-256color");
-				process = pb.start();
-			}
-			
-			PrintWriter output = new PrintWriter(process.getOutputStream(), true);
-			// Paper/Adventure: force ANSI colors when stdout is a pipe. Ignored by vanilla/Spigot/Sponge (harmless).
-			// TERM=xterm-256color above may help other servers that check it for console colors.
-			String ansiFlag = " -Dnet.kyori.ansi.colorLevel=indexed16";
-			output.println("java " + switches + ansiFlag + " -jar \"" + jar.getAbsolutePath() + "\" " + arguments + " & exit");
-			
+
+			// Launch the JVM directly instead of piping a line into cmd/sh. Interactive shells with redirected
+			// stdin are unreliable; bare "java" also depends on PATH rather than the runtime that
+			// started this app. Merge stderr so launcher errors (e.g. bad flags) appear in the console.
+			String ansiFlag = "-Dnet.kyori.ansi.colorLevel=indexed16";
+			JvmSwitchNormalization norm = normalizeJvmSwitchesWithNotes(switches);
+			SpigotGUI.appendJvmNormalizationWarnings(norm.warnings);
+
+			List<String> cmd = new ArrayList<>();
+			cmd.add(resolveJavaExecutable());
+			appendSplitTokens(cmd, norm.normalized);
+			cmd.add(ansiFlag);
+			cmd.add("-jar");
+			cmd.add(jar.getAbsolutePath());
+			appendSplitTokens(cmd, arguments);
+
+			ProcessBuilder pb = new ProcessBuilder(cmd);
+			pb.environment().put("TERM", "xterm-256color");
+			pb.redirectErrorStream(true);
+			process = pb.start();
+
 			Thread thread = createThread();
 			
 			thread.start();
@@ -111,6 +117,119 @@ public class Server {
 		return args;
 	}
 
+	private static String resolveJavaExecutable() {
+		String home = System.getProperty("java.home");
+		if (home != null) {
+			File win = new File(home, "bin" + File.separator + "java.exe");
+			if (win.isFile()) {
+				return win.getAbsolutePath();
+			}
+			File nix = new File(home, "bin" + File.separator + "java");
+			if (nix.isFile()) {
+				return nix.getAbsolutePath();
+			}
+		}
+		return "java";
+	}
+
+	private static void appendSplitTokens(List<String> cmd, String s) {
+		if (s == null) {
+			return;
+		}
+		s = s.trim();
+		if (s.isEmpty()) {
+			return;
+		}
+		for (String part : s.split("\\s+")) {
+			if (!part.isEmpty()) {
+				cmd.add(part);
+			}
+		}
+	}
+
+	static final class JvmSwitchNormalization {
+		final String normalized;
+		final List<String> warnings;
+
+		JvmSwitchNormalization(String normalized, List<String> warnings) {
+			this.normalized = normalized;
+			this.warnings = warnings;
+		}
+	}
+
+	/**
+	 * Maps legacy JVM flags from older tutorials and IDEs to forms that work on current JDKs.
+	 * <ul>
+	 *   <li>{@code -Xnoagent} — removed (invalid / ignored on modern VMs; was for obsolete JVMDI)
+	 *   <li>{@code -Xdebug} — removed (deprecated JDK 22+; JDWP via {@code -agentlib:jdwp} does not need it)
+	 *   <li>{@code -Xrunjdwp:...} — rewritten to {@code -agentlib:jdwp=...}
+	 *   <li>{@code -Djava.compiler=...} — on JDK 21+ removed (obsolete). We do <em>not</em> inject {@code -Xint};
+	 *       that would disable the JIT and cripple server performance; add {@code -Xint} manually only if you want interpreted-only mode.
+	 * </ul>
+	 * Non-empty {@link JvmSwitchNormalization#warnings} should be shown in the console (see {@link SpigotGUI#appendJvmNormalizationWarnings}).
+	 */
+	static JvmSwitchNormalization normalizeJvmSwitchesWithNotes(String switches) {
+		List<String> warnings = new ArrayList<>();
+		if (switches == null || switches.trim().isEmpty()) {
+			return new JvmSwitchNormalization("", warnings);
+		}
+		int feature = javaFeatureVersion();
+		String[] parts = switches.trim().split("\\s+");
+		List<String> out = new ArrayList<>();
+		for (String t : parts) {
+			if (t.isEmpty()) {
+				continue;
+			}
+			String lower = t.toLowerCase();
+			if ("-xnoagent".equals(lower)) {
+				warnings.add("Removed -Xnoagent (not supported on current JDKs).");
+				continue;
+			}
+			if ("-xdebug".equals(lower)) {
+				warnings.add("Removed -Xdebug (unnecessary with JDWP; removed on newer JDKs).");
+				continue;
+			}
+			if (lower.startsWith("-xrunjdwp:")) {
+				String agent = "-agentlib:jdwp=" + t.substring("-xrunjdwp:".length());
+				out.add(agent);
+				warnings.add("Replaced -Xrunjdwp:... with " + agent + " (current JDWP form).");
+				continue;
+			}
+			if (feature >= 21 && lower.startsWith("-djava.compiler=")) {
+				int eq = t.indexOf('=');
+				if (eq >= 0 && eq < t.length() - 1) {
+					String val = t.substring(eq + 1).trim();
+					if ("none".equalsIgnoreCase(val) || "disabled".equalsIgnoreCase(val) || "disable".equalsIgnoreCase(val)) {
+						warnings.add("Removed " + t + " (obsolete on JDK 21+). The JVM ignores this property; the server uses normal JIT. "
+								+ "Do not add -Xint unless you intentionally want interpreted-only mode (very slow).");
+					} else {
+						warnings.add("Removed " + t + " (java.compiler is obsolete on JDK 21+).");
+					}
+				}
+				continue;
+			}
+			out.add(t);
+		}
+		String normalized = out.isEmpty() ? "" : String.join(" ", out);
+		return new JvmSwitchNormalization(normalized, warnings.isEmpty() ? Collections.emptyList() : warnings);
+	}
+
+	private static int javaFeatureVersion() {
+		try {
+			String v = System.getProperty("java.specification.version", "8");
+			if (v.startsWith("1.")) {
+				if ("1.8".equals(v)) {
+					return 8;
+				}
+				return Integer.parseInt(v.substring(2));
+			}
+			int dot = v.indexOf('.');
+			return Integer.parseInt(dot < 0 ? v : v.substring(0, dot));
+		} catch (Exception e) {
+			return 8;
+		}
+	}
+
 	public void sendCommand(String command) throws ProcessException {
 		
 		PrintWriter output = new PrintWriter(process.getOutputStream(), true);
@@ -124,8 +243,7 @@ public class Server {
 	}
 
 	/**
-	 * Returns the underlying process (the shell that runs the server). Used by the Resources tab
-	 * to resolve the server's Java process via the shell's PID and OSHI.
+	 * Returns the server JVM process. Used by the Resources tab for PID and OSHI metrics.
 	 */
 	public Process getProcess() {
 		return process;

@@ -120,18 +120,23 @@ public class ResourcesPanel extends JPanel {
     }
 
     /**
-     * Find the server's Java process: first try shell's child processes; if that fails (e.g. PID
-     * not available on Windows Java 8), search all processes for a Java process matching our jar.
-     * Sets lastDebugMessage so the UI can show why the process was or wasn't found.
+     * Find the server's Java process: prefer the process handle from Server (the JVM we started);
+     * resolve it via OSHI. If that fails, search all processes for java running our jar.
      */
     private OSProcess findServerProcess(Server currentServer) {
-        Process shellProcess = currentServer.getProcess();
-        if (shellProcess == null) return null;
+        Process serverProc = currentServer.getProcess();
+        if (serverProc == null) return null;
 
-        long shellPid = ProcessUtils.getPid(shellProcess);
-        if (shellPid >= 0) {
+        long serverPid = ProcessUtils.getPid(serverProc);
+        if (serverPid >= 0) {
             try {
-                List<OSProcess> children = os.getChildProcesses((int) shellPid, null, null, 10);
+                for (OSProcess p : os.getProcesses()) {
+                    if (p != null && p.getProcessID() == serverPid) return p;
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                List<OSProcess> children = os.getChildProcesses((int) serverPid, null, null, 10);
                 OSProcess p = pickJavaProcess(children);
                 if (p != null) return p;
             } catch (Exception ignored) {
