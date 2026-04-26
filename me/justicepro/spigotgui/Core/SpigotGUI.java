@@ -13,7 +13,11 @@ import java.awt.geom.Arc2D;
 import java.awt.geom.GeneralPath;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -269,7 +273,8 @@ public class SpigotGUI extends JFrame {
 			}
 		});
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setBounds(100, 100, 700, 600);
+		setSize(700, 600);
+		centerOnActiveMonitor();
 		setMinimumSize(new Dimension(MIN_SIZE_BASE_WIDTH, MIN_SIZE_BASE_HEIGHT));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -441,6 +446,33 @@ public class SpigotGUI extends JFrame {
 		}
 
 
+	}
+
+	/**
+	 * Centers this window on whichever monitor the mouse cursor is currently on,
+	 * falling back to the primary screen if the pointer cannot be queried.
+	 * 
+	 * Note that there are edge-cases where this may launch it on the wrong monitor
+	 * (e.g. if the mouse is on a secondary monitor but the user launched ServerGUI
+	 * from the command-line or via keyboard input).
+	 */
+	private void centerOnActiveMonitor() {
+		GraphicsDevice target = null;
+		PointerInfo pi = MouseInfo.getPointerInfo();
+		if (pi != null) {
+			Point mouse = pi.getLocation();
+			for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+				if (gd.getDefaultConfiguration().getBounds().contains(mouse)) {
+					target = gd;
+					break;
+				}
+			}
+		}
+		if (target == null) {
+			target = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		}
+		Rectangle sb = target.getDefaultConfiguration().getBounds();
+		setLocation(sb.x + (sb.width - getWidth()) / 2, sb.y + (sb.height - getHeight()) / 2);
 	}
 
 	public static void saveSettings(Settings settings) throws IOException {
