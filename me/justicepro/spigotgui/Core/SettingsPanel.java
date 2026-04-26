@@ -8,6 +8,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -26,6 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
@@ -241,7 +244,6 @@ public class SettingsPanel extends JPanel {
 		row1.add(btnSetJarFile, BorderLayout.EAST);
 		rc.gridx = 0; rc.gridy = 0; serverSection.add(row1, rc);
 		JLabel lblShutdownCountdown = new JLabel("Shutdown/restart countdown (seconds)");
-		lblShutdownCountdown.setMinimumSize(new Dimension(lblShutdownCountdown.getFontMetrics(lblShutdownCountdown.getFont()).stringWidth("Shutdown/restart countdown (seconds)") + 8, lblShutdownCountdown.getPreferredSize().height));
 		lblShutdownCountdown.setToolTipText("When you click Stop or Restart, wait this many seconds before actually stopping (announces in chat). 0 = immediate.");
 		shutdownCountdownSpinner = new JSpinner(new SpinnerNumberModel(Math.max(0, settings.getShutdownCountdownSeconds()), 0, 86400, 1));
 		shutdownCountdownSpinner.setToolTipText(lblShutdownCountdown.getToolTipText());
@@ -322,11 +324,9 @@ public class SettingsPanel extends JPanel {
 		btnBrowseJvm.setToolTipText(jvmTip);
 		JButton btnResetJvm = new JButton("Reset");
 		btnResetJvm.setToolTipText("Clear the custom JVM path and use the default (same JVM as this app).");
-		int jvmBtnH = btnBrowseJvm.getPreferredSize().height;
-		int browseTextW = btnBrowseJvm.getFontMetrics(btnBrowseJvm.getFont()).stringWidth("Browse...");
-		btnBrowseJvm.setPreferredSize(new Dimension(browseTextW + 34, jvmBtnH));
-		btnBrowseJvm.setMinimumSize(new Dimension(40, jvmBtnH));
-		btnResetJvm.setMinimumSize(new Dimension(40, btnResetJvm.getPreferredSize().height));
+		btnBrowseJvm.setMargin(new Insets(2, 12, 2, 12));
+		btnBrowseJvm.setMinimumSize(new Dimension(40, btnBrowseJvm.getPreferredSize().height));
+		btnResetJvm.setMinimumSize(new Dimension(36, btnResetJvm.getPreferredSize().height));
 		btnBrowseJvm.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -354,22 +354,14 @@ public class SettingsPanel extends JPanel {
 		jvmBtnPanel.add(btnBrowseJvm);
 		jvmBtnPanel.add(Box.createHorizontalStrut(4));
 		jvmBtnPanel.add(btnResetJvm);
-		// Wrap field+buttons in a BorderLayout panel that spans cols 1+2 (gridwidth=2),
-		// exactly matching the switches/args rows so all three rows are the same width.
-		// Label stays in col 0 so all labels align in the same column.
-		// Use hgap=0 so EAST (buttons) is guaranteed flush-right; spacing is a left border on the button panel.
-		jvmBtnPanel.setBorder(new EmptyBorder(0, 6, 0, 0));
-		JPanel jvmFieldRow = new JPanel(new BorderLayout(0, 0));
+		JPanel jvmFieldRow = new JPanel(new BorderLayout(6, 0));
 		jvmFieldRow.add(customJvmPathField, BorderLayout.CENTER);
 		jvmFieldRow.add(jvmBtnPanel, BorderLayout.EAST);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0; c.gridy = 0; c.gridwidth = 1; c.weightx = 0; jvmSection.add(lblCustomJvm, c);
-		c.gridx = 1; c.gridwidth = 2; c.weightx = 1;
-		c.insets = new Insets(pad, pad, pad, 0); // no right inset: buttons inside the panel provide their own edge
-		jvmSection.add(jvmFieldRow, c);
-		c.insets = new Insets(pad, pad, pad, pad); // restore
+		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(jvmFieldRow, c);
 		c.gridwidth = 1;
-		c.fill = GridBagConstraints.HORIZONTAL; // restore after NONE used for buttons
+		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridy = 1; c.gridx = 0; c.weightx = 0; jvmSection.add(lblCustomSwitches, c);
 		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(switchesScroll, c);
 		c.gridwidth = 1;
@@ -512,6 +504,26 @@ public class SettingsPanel extends JPanel {
 		settingsScroll.getVerticalScrollBar().setUnitIncrement(24);
 		settingsScroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		add(settingsScroll, BorderLayout.CENTER);
+
+		// HiDPI startup fix: at construction time, font metrics and preferred sizes are measured
+		// against an off-screen default graphics context that may not reflect the actual display
+		// DPI. This is the same root cause as the "toggle theme to fix layout" workaround.
+		// Calling updateComponentTreeUI once after the panel is first shown reinstalls all UI
+		// delegates using the real screen graphics context — identical to what theme-switching does.
+		addHierarchyListener(new HierarchyListener() {
+			private boolean corrected = false;
+			@Override
+			public void hierarchyChanged(HierarchyEvent e) {
+				if (!corrected && isShowing()
+						&& (e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+					corrected = true;
+					SwingUtilities.invokeLater(() -> {
+						SwingUtilities.updateComponentTreeUI(SettingsPanel.this);
+						revalidate();
+					});
+				}
+			}
+		});
 	}
 
 	void updateAccentPanelForTheme(Theme theme) {
