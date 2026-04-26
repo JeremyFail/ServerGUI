@@ -30,12 +30,12 @@ public enum Theme {
 	Mac("Mac", "com.apple.laf.AquaLookAndFeel", Platform.MAC),
 
 	// FlatLaf core
-	FlatLight("Flat Light", "com.formdev.flatlaf.FlatLightLaf", Platform.ALL),
-	FlatDark("Flat Dark", "com.formdev.flatlaf.FlatDarkLaf", Platform.ALL),
-	FlatIntelliJ("Flat IntelliJ", "com.formdev.flatlaf.FlatIntelliJLaf", Platform.ALL),
-	FlatDarcula("Flat Darcula", "com.formdev.flatlaf.FlatDarculaLaf", Platform.ALL),
-	FlatMacLight("Flat macOS Light", "com.formdev.flatlaf.themes.FlatMacLightLaf", Platform.ALL),
-	FlatMacDark("Flat macOS Dark", "com.formdev.flatlaf.themes.FlatMacDarkLaf", Platform.ALL),
+	FlatLight("Flat Light", "com.formdev.flatlaf.FlatLightLaf", Platform.ALL, "intellij-light"),
+	FlatDark("Flat Dark", "com.formdev.flatlaf.FlatDarkLaf", Platform.ALL, "darcula"),
+	FlatIntelliJ("Flat IntelliJ", "com.formdev.flatlaf.FlatIntelliJLaf", Platform.ALL, "intellij-light"),
+	FlatDarcula("Flat Darcula", "com.formdev.flatlaf.FlatDarculaLaf", Platform.ALL, "darcula"),
+	FlatMacLight("Flat macOS Light", "com.formdev.flatlaf.themes.FlatMacLightLaf", Platform.ALL, "intellij-light"),
+	FlatMacDark("Flat macOS Dark", "com.formdev.flatlaf.themes.FlatMacDarkLaf", Platform.ALL, "darcula"),
 
 	// FlatLaf IntelliJ Themes Pack
 	Arc("Arc", "com.formdev.flatlaf.intellijthemes.FlatArcIJTheme", Platform.ALL),
@@ -43,27 +43,27 @@ public enum Theme {
 	ArcDark("Arc Dark", "com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme", Platform.ALL),
 	ArcDarkOrange("Arc Dark - Orange", "com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme", Platform.ALL),
 	Carbon("Carbon", "com.formdev.flatlaf.intellijthemes.FlatCarbonIJTheme", Platform.ALL),
-	Cobalt2("Cobalt 2", "com.formdev.flatlaf.intellijthemes.FlatCobalt2IJTheme", Platform.ALL),
+	Cobalt2("Cobalt 2", "com.formdev.flatlaf.intellijthemes.FlatCobalt2IJTheme", Platform.ALL, "cobalt2"),
 	CyanLight("Cyan light", "com.formdev.flatlaf.intellijthemes.FlatCyanLightIJTheme", Platform.ALL),
 	DarkFlat("Dark Flat", "com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme", Platform.ALL),
 	DarkPurple("Dark purple", "com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme", Platform.ALL),
-	Dracula("Dracula", "com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme", Platform.ALL),
+	Dracula("Dracula", "com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme", Platform.ALL, "dracula"),
 	GradiantoDarkFuchsia("Gradianto Dark Fuchsia", "com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme", Platform.ALL),
 	GradiantoDeepOcean("Gradianto Deep Ocean", "com.formdev.flatlaf.intellijthemes.FlatGradiantoDeepOceanIJTheme", Platform.ALL),
 	GradiantoMidnightBlue("Gradianto Midnight Blue", "com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme", Platform.ALL),
 	GradiantoNatureGreen("Gradianto Nature Green", "com.formdev.flatlaf.intellijthemes.FlatGradiantoNatureGreenIJTheme", Platform.ALL),
 	Gray("Gray", "com.formdev.flatlaf.intellijthemes.FlatGrayIJTheme", Platform.ALL),
-	GruvboxDarkHard("Gruvbox Dark Hard", "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme", Platform.ALL),
+	GruvboxDarkHard("Gruvbox Dark Hard", "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme", Platform.ALL, "gruvbox-dark-hard"),
 	HiberbeeDark("Hiberbee Dark", "com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme", Platform.ALL),
-	HighContrast("High Contrast", "com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme", Platform.ALL),
+	HighContrast("High Contrast", "com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme", Platform.ALL, "high-contrast"),
 	LightFlat("Light Flat", "com.formdev.flatlaf.intellijthemes.FlatLightFlatIJTheme", Platform.ALL),
 	MaterialDesignDark("Material Design Dark", "com.formdev.flatlaf.intellijthemes.FlatMaterialDesignDarkIJTheme", Platform.ALL),
 	Monocai("Monocai", "com.formdev.flatlaf.intellijthemes.FlatMonocaiIJTheme", Platform.ALL),
 	MonokaiPro("Monokai Pro", "com.formdev.flatlaf.intellijthemes.FlatMonokaiProIJTheme", Platform.ALL),
-	Nord("Nord", "com.formdev.flatlaf.intellijthemes.FlatNordIJTheme", Platform.ALL),
-	OneDark("One Dark", "com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme", Platform.ALL),
-	SolarizedDark("Solarized Dark", "com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme", Platform.ALL),
-	SolarizedLight("Solarized Light", "com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme", Platform.ALL),
+	Nord("Nord", "com.formdev.flatlaf.intellijthemes.FlatNordIJTheme", Platform.ALL, "nord"),
+	OneDark("One Dark", "com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme", Platform.ALL, "one-dark"),
+	SolarizedDark("Solarized Dark", "com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme", Platform.ALL, "solarized-dark"),
+	SolarizedLight("Solarized Light", "com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme", Platform.ALL, "solarized-light"),
 	Spacegray("Spacegray", "com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme", Platform.ALL),
 	Vuesion("Vuesion", "com.formdev.flatlaf.intellijthemes.FlatVuesionIJTheme", Platform.ALL),
 	XcodeDark("Xcode-Dark", "com.formdev.flatlaf.intellijthemes.FlatXcodeDarkIJTheme", Platform.ALL),
@@ -96,16 +96,33 @@ public enum Theme {
 	private final String lookAndFeel;
 	private final Platform platform;
 	private final boolean shownInUI;
+	/**
+	 * Resource name of the bundled editor color scheme (under editor-schemes/*.xml), or
+	 * {@code null} if no specific scheme is available (falls back to a generic dark/light palette).
+	 */
+	private final String editorScheme;
 
+	/** Used for shown entries with no specific editor scheme. */
 	private Theme(String name, String lookAndFeel, Platform platform) {
-		this(name, lookAndFeel, platform, true);
+		this(name, lookAndFeel, platform, true, null);
 	}
 
+	/** Used for legacy (hidden) entries — shownInUI=false, editorScheme=null. */
 	private Theme(String name, String lookAndFeel, Platform platform, boolean shownInUI) {
+		this(name, lookAndFeel, platform, shownInUI, null);
+	}
+
+	/** Used for shown entries that have a bundled editor color scheme. */
+	private Theme(String name, String lookAndFeel, Platform platform, String editorScheme) {
+		this(name, lookAndFeel, platform, true, editorScheme);
+	}
+
+	private Theme(String name, String lookAndFeel, Platform platform, boolean shownInUI, String editorScheme) {
 		this.name = name;
 		this.lookAndFeel = lookAndFeel;
 		this.platform = platform;
 		this.shownInUI = shownInUI;
+		this.editorScheme = editorScheme;
 	}
 
 	public String getName() {
@@ -114,6 +131,17 @@ public enum Theme {
 
 	public String getLookAndFeel() {
 		return lookAndFeel;
+	}
+
+	/**
+	 * Returns the resource name of the bundled editor color scheme for this theme
+	 * (e.g. {@code "dracula"} → {@code /editor-schemes/dracula.xml}), or {@code null}
+	 * if no specific scheme is available.  {@code null} causes {@link
+	 * me.justicepro.spigotgui.FileExplorer.EditorSchemeApplier} to auto-select a
+	 * generic dark or light palette based on {@code FlatLaf.isLafDark()}.
+	 */
+	public String getEditorScheme() {
+		return editorScheme;
 	}
 
 	public boolean isShownInUI() {

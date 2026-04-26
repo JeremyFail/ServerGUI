@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Gruvbox Dark Hard editor color scheme for RSyntaxTextArea.
+  Based on the Gruvbox color palette by Pavel Pertsev (morhetz) - MIT License.
+  https://github.com/morhetz/gruvbox
+  Palette notation: dark0_hard=bg, bright variants (red/green/yellow/blue/purple/aqua/orange)
+  for syntax elements; gray (neutral gray1) for comments.
+-->
+<scheme name="Gruvbox Dark Hard" dark="true">
+    <!-- dark0_hard -->
+    <background>1d2021</background>
+    <!-- light0 -->
+    <foreground>ebdbb2</foreground>
+    <!-- light0 -->
+    <caret>ebdbb2</caret>
+    <!-- dark2 -->
+    <selection-background>504945</selection-background>
+    <!-- light0 -->
+    <selection-foreground>ebdbb2</selection-foreground>
+    <!-- dark0, slightly lighter -->
+    <line-highlight>262727</line-highlight>
+    <!-- dark0_hard -->
+    <gutter-background>1d2021</gutter-background>
+    <!-- dark4 -->
+    <gutter-foreground>7c6f64</gutter-foreground>
+
+    <!-- bright red -->
+    <token type="keyword"          fg="fb4934" bold="true"/>
+    <!-- bright blue -->
+    <token type="keyword2"         fg="83a598"/>
+    <!-- gray -->
+    <token type="comment"          fg="928374" italic="true"/>
+    <!-- bright green -->
+    <token type="comment-keyword"  fg="b8bb26"/>
+    <!-- bright green -->
+    <token type="string"           fg="b8bb26"/>
+    <!-- bright purple -->
+    <token type="number"           fg="d3869b"/>
+    <!-- bright yellow -->
+    <token type="function"         fg="fabd2f"/>
+    <!-- light0 -->
+    <token type="variable"         fg="ebdbb2"/>
+    <!-- bright blue -->
+    <token type="type"             fg="83a598"/>
+    <!-- bright aqua -->
+    <token type="regex"            fg="8ec07c"/>
+    <!-- bright orange -->
+    <token type="annotation"       fg="fe8019"/>
+    <!-- bright orange -->
+    <token type="operator"         fg="fe8019"/>
+    <!-- bright orange -->
+    <token type="preprocessor"     fg="fe8019"/>
+    <!-- bright red -->
+    <token type="markup-tag"       fg="fb4934"/>
+    <!-- bright yellow -->
+    <token type="markup-attr"      fg="fabd2f"/>
+    <!-- bright green -->
+    <token type="markup-attr-value" fg="b8bb26"/>
+    <!-- dark red -->
+    <token type="error"            fg="cc241d"/>
+</scheme>

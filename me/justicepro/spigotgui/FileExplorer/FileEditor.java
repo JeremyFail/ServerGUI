@@ -7,7 +7,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
@@ -31,7 +30,7 @@ import javax.swing.event.DocumentListener;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.Theme;
+import me.justicepro.spigotgui.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.RUndoManager;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -39,20 +38,28 @@ import org.fife.ui.rtextarea.SearchContext;
 
 public class FileEditor extends JFrame {
 
-	/** Theme name for new editor instances; set from Settings. */
-	private static String defaultThemeName = "default";
-	/** Open editor windows so we can apply theme changes to all. */
+	/** Open editor windows so we can apply scheme changes to all of them. */
 	private static final List<FileEditor> openEditors = new CopyOnWriteArrayList<>();
+	/** Currently active application theme; used to choose the editor color scheme. */
+	private static Theme currentAppTheme = null;
 
-	public static void setDefaultThemeName(String themeName) {
-		defaultThemeName = (themeName != null && themeName.length() > 0) ? themeName : "default";
-		for (FileEditor editor : openEditors) {
-			editor.applyEditorTheme(defaultThemeName);
-		}
+	/**
+	 * Set the application theme without immediately applying it (called at startup
+	 * before any editors are open).
+	 */
+	public static void setAppTheme(Theme theme) {
+		currentAppTheme = theme;
 	}
 
-	public static String getDefaultThemeName() {
-		return defaultThemeName;
+	/**
+	 * Apply the editor color scheme for the given theme to all currently open editors.
+	 * Call this when the application theme changes live (same-family switch).
+	 */
+	public static void applyCurrentScheme(Theme theme) {
+		currentAppTheme = theme;
+		for (FileEditor editor : openEditors) {
+			EditorSchemeApplier.apply(editor.textArea, theme);
+		}
 	}
 
 	private JPanel contentPane;
@@ -117,13 +124,14 @@ public class FileEditor extends JFrame {
 			}
 		});
 
-		applyTheme(defaultThemeName);
 		openEditors.add(this);
 
 		RTextScrollPane scrollPane = new RTextScrollPane(textArea);
 		scrollPane.setLineNumbersEnabled(true);
 		scrollPane.setFoldIndicatorEnabled(true);
 		contentPane.add(scrollPane, BorderLayout.CENTER);
+		// Apply the editor color scheme after the scroll pane is built so the gutter is accessible.
+		EditorSchemeApplier.apply(textArea, currentAppTheme);
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -254,26 +262,8 @@ public class FileEditor extends JFrame {
 		findReplaceDialog.setVisible(true);
 	}
 
-	/** Apply the given theme to this editor (used for new windows and when user changes theme in Settings). */
 	public void applyEditorTheme(String themeName) {
-		applyTheme(themeName);
-	}
-
-	/**
-	 * Apply a built-in RSyntaxTextArea theme by name (e.g. "default", "dark", "eclipse").
-	 */
-	private void applyTheme(String themeName) {
-		if (themeName == null || themeName.isEmpty()) themeName = "default";
-		try {
-			InputStream in = RSyntaxTextArea.class.getResourceAsStream("themes/" + themeName + ".xml");
-			if (in != null) {
-				Theme theme = Theme.load(in);
-				theme.apply(textArea);
-				in.close();
-			}
-		} catch (IOException e) {
-			// ignore; use default look
-		}
+		EditorSchemeApplier.apply(textArea, currentAppTheme);
 	}
 
 	private void setSyntaxStyleFromFile(File file) {

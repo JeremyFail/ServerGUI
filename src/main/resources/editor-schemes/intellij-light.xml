@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IntelliJ Light editor color scheme for RSyntaxTextArea.
+  Based on the JetBrains default/IntelliJ Light color scheme, which is part of IntelliJ IDEA
+  Community Edition (Apache License 2.0 - https://github.com/JetBrains/intellij-community).
+  Color values used here are factual/functional and are not copyrightable as such.
+-->
+<scheme name="IntelliJ Light" dark="false">
+    <background>ffffff</background>
+    <foreground>000000</foreground>
+    <caret>000000</caret>
+    <selection-background>c5d8fc</selection-background>
+    <selection-foreground>000000</selection-foreground>
+    <line-highlight>fffee3</line-highlight>
+    <gutter-background>f2f2f2</gutter-background>
+    <gutter-foreground>a8a8a8</gutter-foreground>
+
+    <token type="keyword"          fg="0033b3" bold="true"/>
+    <token type="keyword2"         fg="0033b3" bold="true"/>
+    <token type="comment"          fg="8c8c8c" italic="true"/>
+    <token type="comment-keyword"  fg="3d8065"/>
+    <token type="string"           fg="067d17"/>
+    <token type="number"           fg="1750eb"/>
+    <token type="function"         fg="00627a"/>
+    <token type="variable"         fg="000000"/>
+    <token type="type"             fg="000000"/>
+    <token type="regex"            fg="067d17"/>
+    <token type="annotation"       fg="9e880d"/>
+    <token type="operator"         fg="000000"/>
+    <token type="preprocessor"     fg="008080"/>
+    <token type="markup-tag"       fg="0000ff"/>
+    <token type="markup-attr"      fg="174ad4"/>
+    <token type="markup-attr-value" fg="067d17"/>
+    <token type="error"            fg="ff0000"/>
+</scheme>

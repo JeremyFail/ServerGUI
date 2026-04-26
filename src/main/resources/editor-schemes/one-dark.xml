@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  One Dark editor color scheme for RSyntaxTextArea.
+  Based on One Dark Theme for JetBrains (MIT License).
+  Original author: Mark Skelton et al. - https://github.com/one-dark/jetbrains-one-dark-theme
+  Atom One Dark palette by GitHub.
+-->
+<scheme name="One Dark" dark="true">
+    <background>282c34</background>
+    <foreground>abb2bf</foreground>
+    <caret>528bff</caret>
+    <selection-background>3e4451</selection-background>
+    <line-highlight>2c313c</line-highlight>
+    <gutter-background>282c34</gutter-background>
+    <gutter-foreground>636d83</gutter-foreground>
+
+    <!-- purple -->
+    <token type="keyword"          fg="c678dd" bold="true"/>
+    <!-- yellow/orange - types -->
+    <token type="keyword2"         fg="e5c07b"/>
+    <!-- gray -->
+    <token type="comment"          fg="5c6370" italic="true"/>
+    <!-- green -->
+    <token type="comment-keyword"  fg="98c379"/>
+    <!-- green -->
+    <token type="string"           fg="98c379"/>
+    <!-- orange -->
+    <token type="number"           fg="d19a66"/>
+    <!-- blue -->
+    <token type="function"         fg="61afef"/>
+    <!-- red/pink - variables in One Dark -->
+    <token type="variable"         fg="e06c75"/>
+    <!-- yellow - types -->
+    <token type="type"             fg="e5c07b"/>
+    <!-- purple -->
+    <token type="regex"            fg="c678dd"/>
+    <!-- yellow -->
+    <token type="annotation"       fg="e5c07b"/>
+    <!-- cyan -->
+    <token type="operator"         fg="56b6c2"/>
+    <!-- yellow -->
+    <token type="preprocessor"     fg="e5c07b"/>
+    <!-- red -->
+    <token type="markup-tag"       fg="e06c75"/>
+    <!-- orange -->
+    <token type="markup-attr"      fg="d19a66"/>
+    <!-- green -->
+    <token type="markup-attr-value" fg="98c379"/>
+    <!-- red -->
+    <token type="error"            fg="f44747"/>
+</scheme>

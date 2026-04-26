@@ -1115,6 +1115,20 @@ public class SpigotGUI extends JFrame {
 	}
 
 	/** Apply current accent color from UI to FlatLaf and restart icon without restart. */
+	/**
+	 * Propagates the current look and feel to every window currently open in this
+	 * application (main frame, file editors, help/admin windows, etc.).
+	 * Uses {@link java.awt.Window#getWindows()} which returns all top-level windows
+	 * created by this JVM, so no manual window registry is needed.
+	 */
+	static void updateAllWindowsUI() {
+		for (java.awt.Window w : java.awt.Window.getWindows()) {
+			if (w != null) {
+				SwingUtilities.updateComponentTreeUI(w);
+			}
+		}
+	}
+
 	void applyAccentColorLive() {
 		int rgb = getAccentColorRgbFromUI();
 		String hex = String.format("#%06X", 0xFFFFFF & rgb);
@@ -1124,7 +1138,7 @@ public class SpigotGUI extends JFrame {
 			javax.swing.LookAndFeel current = UIManager.getLookAndFeel();
 			if (current != null) {
 				UIManager.setLookAndFeel(current.getClass().getName());
-				SwingUtilities.updateComponentTreeUI(this);
+				updateAllWindowsUI();
 			} else {
 				FlatLaf.updateUI();
 			}

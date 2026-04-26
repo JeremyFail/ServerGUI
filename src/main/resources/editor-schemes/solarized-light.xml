@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Solarized Light editor color scheme for RSyntaxTextArea.
+  Based on Solarized for IntelliJ Platform (MIT License / Apache 2.0).
+  Author: snowe2010 - https://github.com/snowe2010/solarized-jetbrains
+  Solarized palette by Ethan Schoonover - https://ethanschoonover.com/solarized/ (MIT)
+-->
+<scheme name="Solarized Light" dark="false">
+    <!-- base3 -->
+    <background>fdf6e3</background>
+    <!-- base00 -->
+    <foreground>657b83</foreground>
+    <!-- base00 -->
+    <caret>657b83</caret>
+    <!-- base2 -->
+    <selection-background>eee8d5</selection-background>
+    <!-- base00 -->
+    <selection-foreground>657b83</selection-foreground>
+    <!-- base2 -->
+    <line-highlight>eee8d5</line-highlight>
+    <!-- base3 -->
+    <gutter-background>fdf6e3</gutter-background>
+    <!-- base1 -->
+    <gutter-foreground>93a1a1</gutter-foreground>
+
+    <!-- green -->
+    <token type="keyword"          fg="859900" bold="true"/>
+    <!-- yellow -->
+    <token type="keyword2"         fg="b58900"/>
+    <!-- base1 -->
+    <token type="comment"          fg="93a1a1" italic="true"/>
+    <!-- green -->
+    <token type="comment-keyword"  fg="859900"/>
+    <!-- cyan -->
+    <token type="string"           fg="2aa198"/>
+    <!-- magenta -->
+    <token type="number"           fg="d33682"/>
+    <!-- blue -->
+    <token type="function"         fg="268bd2"/>
+    <!-- base00 -->
+    <token type="variable"         fg="657b83"/>
+    <!-- yellow -->
+    <token type="type"             fg="b58900"/>
+    <!-- cyan -->
+    <token type="regex"            fg="2aa198"/>
+    <!-- orange -->
+    <token type="annotation"       fg="cb4b16"/>
+    <!-- base01 -->
+    <token type="operator"         fg="586e75"/>
+    <!-- orange -->
+    <token type="preprocessor"     fg="cb4b16"/>
+    <!-- blue -->
+    <token type="markup-tag"       fg="268bd2"/>
+    <!-- base01 -->
+    <token type="markup-attr"      fg="586e75"/>
+    <!-- cyan -->
+    <token type="markup-attr-value" fg="2aa198"/>
+    <!-- red -->
+    <token type="error"            fg="dc322f"/>
+</scheme>

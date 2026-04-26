@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  High Contrast editor color scheme for RSyntaxTextArea.
+  Based on the JetBrains High Contrast color scheme bundled with IntelliJ IDEA Community Edition
+  (Apache License 2.0 - https://github.com/JetBrains/intellij-community).
+  Designed for maximum readability and accessibility.
+-->
+<scheme name="High Contrast" dark="true">
+    <background>010101</background>
+    <foreground>ffffff</foreground>
+    <caret>ffffff</caret>
+    <selection-background>00008b</selection-background>
+    <selection-foreground>ffffff</selection-foreground>
+    <line-highlight>181818</line-highlight>
+    <gutter-background>010101</gutter-background>
+    <gutter-foreground>696969</gutter-foreground>
+
+    <token type="keyword"          fg="ffff00" bold="true"/>
+    <token type="keyword2"         fg="00ff7f"/>
+    <token type="comment"          fg="a9a9a9" italic="true"/>
+    <token type="comment-keyword"  fg="00ff00"/>
+    <token type="string"           fg="00f000"/>
+    <token type="number"           fg="5dade2"/>
+    <token type="function"         fg="00ffff"/>
+    <token type="variable"         fg="ffffff"/>
+    <token type="type"             fg="00ff7f"/>
+    <token type="regex"            fg="ffa500"/>
+    <token type="annotation"       fg="ffa500"/>
+    <token type="operator"         fg="ffffff"/>
+    <token type="preprocessor"     fg="ffa500"/>
+    <token type="markup-tag"       fg="ffff00"/>
+    <token type="markup-attr"      fg="00ff00"/>
+    <token type="markup-attr-value" fg="00ffff"/>
+    <token type="error"            fg="ff0000"/>
+</scheme>

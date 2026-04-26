@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Nord editor color scheme for RSyntaxTextArea.
+  Based on Nord for JetBrains (MIT License).
+  Original author: Arctic Ice Studio - https://github.com/nordtheme/jetbrains
+  Nord palette: https://www.nordtheme.com/docs/colors-and-palettes
+  Palette notation: nord0-nord15 as documented at nordtheme.com.
+-->
+<scheme name="Nord" dark="true">
+    <!-- nord0 -->
+    <background>2e3440</background>
+    <!-- nord4 -->
+    <foreground>d8dee9</foreground>
+    <!-- nord4 -->
+    <caret>d8dee9</caret>
+    <!-- nord2 -->
+    <selection-background>434c5e</selection-background>
+    <!-- nord4 -->
+    <selection-foreground>d8dee9</selection-foreground>
+    <!-- nord1 -->
+    <line-highlight>3b4252</line-highlight>
+    <!-- nord0 -->
+    <gutter-background>2e3440</gutter-background>
+    <!-- nord3 (slightly brightened for legibility against nord0) -->
+    <gutter-foreground>616e88</gutter-foreground>
+
+    <!-- nord9 (frost blue) -->
+    <token type="keyword"          fg="81a1c1" bold="true"/>
+    <!-- nord10 (dark blue) - slightly darker than keyword, provides contrast -->
+    <token type="keyword2"         fg="5e81ac"/>
+    <!-- nord3 brightened (~616e88) - visible against dark bg without being distracting -->
+    <token type="comment"          fg="616e88" italic="true"/>
+    <!-- nord14 (green) -->
+    <token type="comment-keyword"  fg="a3be8c"/>
+    <!-- nord14 (green) -->
+    <token type="string"           fg="a3be8c"/>
+    <!-- nord15 (purple) -->
+    <token type="number"           fg="b48ead"/>
+    <!-- nord8 (lighter frost) -->
+    <token type="function"         fg="88c0d0"/>
+    <!-- nord4 -->
+    <token type="variable"         fg="d8dee9"/>
+    <!-- nord7 (teal) -->
+    <token type="type"             fg="8fbcbb"/>
+    <!-- nord13 (yellow) -->
+    <token type="regex"            fg="ebcb8b"/>
+    <!-- nord12 (orange) -->
+    <token type="annotation"       fg="d08770"/>
+    <!-- nord9 -->
+    <token type="operator"         fg="81a1c1"/>
+    <!-- nord10 (dark blue) -->
+    <token type="preprocessor"     fg="5e81ac"/>
+    <!-- nord9 -->
+    <token type="markup-tag"       fg="81a1c1"/>
+    <!-- nord7 -->
+    <token type="markup-attr"      fg="8fbcbb"/>
+    <!-- nord14 -->
+    <token type="markup-attr-value" fg="a3be8c"/>
+    <!-- nord11 (red) -->
+    <token type="error"            fg="bf616a"/>
+</scheme>

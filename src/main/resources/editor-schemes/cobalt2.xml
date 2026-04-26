@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Cobalt 2 editor color scheme for RSyntaxTextArea.
+  Based on Cobalt2 Theme for JetBrains by Wes Bos (MIT License).
+  https://github.com/wesbos/cobalt2
+  https://github.com/ngehlert/cobalt2
+  Cobalt palette: deep navy background with vivid accent colors.
+-->
+<scheme name="Cobalt 2" dark="true">
+    <background>193549</background>
+    <foreground>e1efff</foreground>
+    <caret>ffffff</caret>
+    <selection-background>1f4662</selection-background>
+    <selection-foreground>ffffff</selection-foreground>
+    <line-highlight>1e3554</line-highlight>
+    <gutter-background>193549</gutter-background>
+    <gutter-foreground>4d6f8c</gutter-foreground>
+
+    <!-- orange -->
+    <token type="keyword"          fg="ff9d00" bold="true"/>
+    <!-- mint/aqua -->
+    <token type="keyword2"         fg="9ef1dd"/>
+    <!-- blue -->
+    <token type="comment"          fg="0088ff" italic="true"/>
+    <!-- bright green -->
+    <token type="comment-keyword"  fg="3ad900"/>
+    <!-- bright green -->
+    <token type="string"           fg="3ad900"/>
+    <!-- pink -->
+    <token type="number"           fg="ff628c"/>
+    <!-- yellow -->
+    <token type="function"         fg="fad000"/>
+    <!-- light -->
+    <token type="variable"         fg="cccccc"/>
+    <!-- mint -->
+    <token type="type"             fg="9ef1dd"/>
+    <!-- pink -->
+    <token type="regex"            fg="ff628c"/>
+    <!-- yellow -->
+    <token type="annotation"       fg="fad000"/>
+    <!-- light blue -->
+    <token type="operator"         fg="e1efff"/>
+    <!-- orange -->
+    <token type="preprocessor"     fg="ff9d00"/>
+    <!-- orange -->
+    <token type="markup-tag"       fg="ff9d00"/>
+    <!-- mint -->
+    <token type="markup-attr"      fg="9ef1dd"/>
+    <!-- green -->
+    <token type="markup-attr-value" fg="3ad900"/>
+    <!-- red -->
+    <token type="error"            fg="ff0000"/>
+</scheme>

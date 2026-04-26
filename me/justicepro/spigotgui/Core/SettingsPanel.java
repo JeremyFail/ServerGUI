@@ -26,7 +26,6 @@ import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
@@ -60,7 +59,6 @@ public class SettingsPanel extends JPanel {
 	private JCheckBox disableConsoleColorsCheckBox;
 	private JCheckBox consoleWrapWordBreakOnlyCheckBox;
 	private JCheckBox openFilesInSystemDefaultCheckBox;
-	private JComboBox<String> fileEditorThemeBox;
 	private JCheckBox manualConsoleScrollStickyCheckBox;
 	private JCheckBox serverButtonsUseTextCheckBox;
 	private JSpinner shutdownCountdownSpinner;
@@ -150,7 +148,8 @@ public class SettingsPanel extends JPanel {
 				if (sameFamily) {
 					try {
 						UIManager.setLookAndFeel(theme.getLookAndFeel());
-						SwingUtilities.updateComponentTreeUI(gui);
+						SpigotGUI.updateAllWindowsUI();
+						FileEditor.applyCurrentScheme(theme);
 					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 							| UnsupportedLookAndFeelException e) {
 						e.printStackTrace();
@@ -402,42 +401,34 @@ public class SettingsPanel extends JPanel {
 		cAccent.insets = new Insets(pad, pad, pad, pad);
 		appearanceSection.add(accentRow, cAccent);
 		updateAccentPanelForTheme(settings.getTheme());
-		JLabel lblFileEditorTheme = new JLabel("File editor theme");
-		lblFileEditorTheme.setToolTipText("Syntax highlighting theme used in the built-in file editor.");
-		fileEditorThemeBox = new JComboBox<>(new String[] { "default", "default-alt", "dark", "druid", "eclipse", "idea", "monokai", "vs" });
-		fileEditorThemeBox.setSelectedItem(settings.getFileEditorTheme());
-		fileEditorThemeBox.setToolTipText(lblFileEditorTheme.getToolTipText());
-		fileEditorThemeBox.addActionListener(e -> FileEditor.setDefaultThemeName(getFileEditorThemeFromBox()));
-		c.gridy = 2; c.gridx = 0; c.weightx = 0; appearanceSection.add(lblFileEditorTheme, c);
-		c.gridx = 1; c.weightx = 1; appearanceSection.add(fileEditorThemeBox, c);
 		lblFontSize.setToolTipText("Font size (in points) for the console text.");
 		fontSpinner.setPreferredSize(new Dimension(90, fontSpinner.getPreferredSize().height));
 		fontSpinner.setToolTipText(lblFontSize.getToolTipText());
-		c.gridy = 3; c.gridx = 0; c.weightx = 0; c.fill = GridBagConstraints.NONE; appearanceSection.add(lblFontSize, c);
+		c.gridy = 2; c.gridx = 0; c.weightx = 0; c.fill = GridBagConstraints.NONE; appearanceSection.add(lblFontSize, c);
 		c.gridx = 1; c.weightx = 0; c.fill = GridBagConstraints.NONE; appearanceSection.add(fontSpinner, c);
 		c.gridx = 2; c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL; appearanceSection.add(new JPanel(), c);
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridy = 4; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleDarkModeCheckBox, c);
+		c.gridy = 3; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleDarkModeCheckBox, c);
 		c.gridwidth = 1;
-		c.gridy = 5; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(disableConsoleColorsCheckBox, c);
-		c.gridy = 6; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleWrapWordBreakOnlyCheckBox, c);
+		c.gridy = 4; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(disableConsoleColorsCheckBox, c);
+		c.gridy = 5; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleWrapWordBreakOnlyCheckBox, c);
 		manualConsoleScrollStickyCheckBox = new JCheckBox("Manual console scroll sticky");
 		manualConsoleScrollStickyCheckBox.setToolTipText("<html>When checked, a \"Console scroll sticky\" checkbox appears on the Console tab.<br>You control whether the console auto-scrolls to the bottom by toggling that checkbox.<br>When unchecked, sticky is automatic: scroll to bottom to stick, scroll up to unstick.</html>");
 		manualConsoleScrollStickyCheckBox.setSelected(settings.isManualConsoleScrollSticky());
 		manualConsoleScrollStickyCheckBox.addActionListener(e -> gui.onManualConsoleScrollStickyChanged(manualConsoleScrollStickyCheckBox.isSelected()));
-		c.gridy = 7; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(manualConsoleScrollStickyCheckBox, c);
+		c.gridy = 6; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(manualConsoleScrollStickyCheckBox, c);
 		serverButtonsUseTextCheckBox = new JCheckBox("Use text for server control buttons");
 		serverButtonsUseTextCheckBox.setToolTipText("When checked, Start/Stop/Restart show text. When unchecked, they show only icons (play, stop, refresh) with tooltips.");
 		serverButtonsUseTextCheckBox.setSelected(settings.isServerButtonsUseText());
 		serverButtonsUseTextCheckBox.addActionListener(e -> gui.applyServerButtonStyle(!serverButtonsUseTextCheckBox.isSelected()));
-		c.gridy = 8; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(serverButtonsUseTextCheckBox, c);
+		c.gridy = 7; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(serverButtonsUseTextCheckBox, c);
 		minRam.setMinimumSize(new Dimension(50, minRam.getPreferredSize().height));
 		maxRam.setMinimumSize(new Dimension(50, maxRam.getPreferredSize().height));
 		fontSpinner.setMinimumSize(new Dimension(50, fontSpinner.getPreferredSize().height));
 		themeBox.setMinimumSize(new Dimension(80, themeBox.getPreferredSize().height));
-		fileEditorThemeBox.setMinimumSize(new Dimension(80, fileEditorThemeBox.getPreferredSize().height));
 		settingsContentInner.add(appearanceSection);
-		FileEditor.setDefaultThemeName(settings.getFileEditorTheme());
+		// Set the initial editor color scheme to match the loaded theme.
+		FileEditor.setAppTheme(settings.getTheme());
 
 		JPanel settingsContent = new JPanel(new BorderLayout()) {
 			@Override
@@ -475,7 +466,6 @@ public class SettingsPanel extends JPanel {
 	public JCheckBox getConsoleDarkModeCheckBox() { return consoleDarkModeCheckBox; }
 	public JCheckBox getDisableConsoleColorsCheckBox() { return disableConsoleColorsCheckBox; }
 	public JCheckBox getOpenFilesInSystemDefaultCheckBox() { return openFilesInSystemDefaultCheckBox; }
-	public JComboBox<String> getFileEditorThemeBox() { return fileEditorThemeBox; }
 	public JCheckBox getManualConsoleScrollStickyCheckBox() { return manualConsoleScrollStickyCheckBox; }
 	public JCheckBox getServerButtonsUseTextCheckBox() { return serverButtonsUseTextCheckBox; }
 	public JCheckBox getConsoleWrapWordBreakOnlyCheckBox() { return consoleWrapWordBreakOnlyCheckBox; }
@@ -487,11 +477,6 @@ public class SettingsPanel extends JPanel {
 			if (v instanceof Number) return Math.max(0, ((Number) v).intValue());
 		}
 		return 0;
-	}
-
-	public String getFileEditorThemeFromBox() {
-		Object sel = fileEditorThemeBox != null ? fileEditorThemeBox.getSelectedItem() : null;
-		return (sel != null && sel.toString().length() > 0) ? sel.toString() : "default";
 	}
 
 	public int getAccentColorRgbFromUI() {
@@ -522,7 +507,7 @@ public class SettingsPanel extends JPanel {
 			consoleDarkModeCheckBox.isSelected(),
 			!disableConsoleColorsCheckBox.isSelected(),
 			openFilesInSystemDefaultCheckBox.isSelected(),
-			getFileEditorThemeFromBox(),
+			settings.getFileEditorTheme(),
 			manualConsoleScrollStickyCheckBox.isSelected(),
 			serverButtonsUseTextCheckBox.isSelected(),
 			getShutdownCountdownSeconds(),

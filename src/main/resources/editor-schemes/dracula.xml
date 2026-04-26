@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Dracula editor color scheme for RSyntaxTextArea.
+  Based on the Dracula Theme for JetBrains (MIT License).
+  Original authors: Zeno Rocha et al. - https://github.com/dracula/jetbrains
+  Color palette: https://draculatheme.com/contribute
+-->
+<scheme name="Dracula" dark="true">
+    <background>282a36</background>
+    <foreground>f8f8f2</foreground>
+    <caret>f8f8f2</caret>
+    <selection-background>44475a</selection-background>
+    <selection-foreground>f8f8f2</selection-foreground>
+    <line-highlight>2f3143</line-highlight>
+    <gutter-background>282a36</gutter-background>
+    <gutter-foreground>6272a4</gutter-foreground>
+
+    <token type="keyword"          fg="ff79c6" bold="true"/>
+    <token type="keyword2"         fg="8be9fd" italic="true"/>
+    <token type="comment"          fg="6272a4" italic="true"/>
+    <token type="comment-keyword"  fg="50fa7b"/>
+    <token type="string"           fg="f1fa8c"/>
+    <token type="number"           fg="bd93f9"/>
+    <token type="function"         fg="50fa7b"/>
+    <token type="variable"         fg="f8f8f2"/>
+    <token type="type"             fg="8be9fd" italic="true"/>
+    <token type="regex"            fg="ffb86c"/>
+    <token type="annotation"       fg="f1fa8c"/>
+    <token type="operator"         fg="ff79c6"/>
+    <token type="preprocessor"     fg="ff79c6"/>
+    <token type="markup-tag"       fg="ff79c6"/>
+    <token type="markup-attr"      fg="50fa7b"/>
+    <token type="markup-attr-value" fg="f1fa8c"/>
+    <token type="error"            fg="ff5555"/>
+</scheme>
