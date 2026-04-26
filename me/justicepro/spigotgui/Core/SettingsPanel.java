@@ -324,7 +324,7 @@ public class SettingsPanel extends JPanel {
 		btnResetJvm.setToolTipText("Clear the custom JVM path and use the default (same JVM as this app).");
 		int jvmBtnH = btnBrowseJvm.getPreferredSize().height;
 		int browseTextW = btnBrowseJvm.getFontMetrics(btnBrowseJvm.getFont()).stringWidth("Browse...");
-		btnBrowseJvm.setPreferredSize(new Dimension(browseTextW + 24, jvmBtnH));
+		btnBrowseJvm.setPreferredSize(new Dimension(browseTextW + 34, jvmBtnH));
 		btnBrowseJvm.setMinimumSize(new Dimension(40, jvmBtnH));
 		btnResetJvm.setMinimumSize(new Dimension(40, btnResetJvm.getPreferredSize().height));
 		btnBrowseJvm.addActionListener(new ActionListener() {
@@ -354,15 +354,22 @@ public class SettingsPanel extends JPanel {
 		jvmBtnPanel.add(btnBrowseJvm);
 		jvmBtnPanel.add(Box.createHorizontalStrut(4));
 		jvmBtnPanel.add(btnResetJvm);
-		// Single BorderLayout row spanning all 3 columns: label WEST, buttons EAST, field CENTER.
-		// This guarantees the field is dynamic and the buttons are always flush right.
-		JPanel jvmRow = new JPanel(new BorderLayout(8, 0));
-		jvmRow.add(lblCustomJvm, BorderLayout.WEST);
-		jvmRow.add(customJvmPathField, BorderLayout.CENTER);
-		jvmRow.add(jvmBtnPanel, BorderLayout.EAST);
+		// Wrap field+buttons in a BorderLayout panel that spans cols 1+2 (gridwidth=2),
+		// exactly matching the switches/args rows so all three rows are the same width.
+		// Label stays in col 0 so all labels align in the same column.
+		// Use hgap=0 so EAST (buttons) is guaranteed flush-right; spacing is a left border on the button panel.
+		jvmBtnPanel.setBorder(new EmptyBorder(0, 6, 0, 0));
+		JPanel jvmFieldRow = new JPanel(new BorderLayout(0, 0));
+		jvmFieldRow.add(customJvmPathField, BorderLayout.CENTER);
+		jvmFieldRow.add(jvmBtnPanel, BorderLayout.EAST);
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 0; c.gridy = 0; c.gridwidth = 3; c.weightx = 1; jvmSection.add(jvmRow, c);
+		c.gridx = 0; c.gridy = 0; c.gridwidth = 1; c.weightx = 0; jvmSection.add(lblCustomJvm, c);
+		c.gridx = 1; c.gridwidth = 2; c.weightx = 1;
+		c.insets = new Insets(pad, pad, pad, 0); // no right inset: buttons inside the panel provide their own edge
+		jvmSection.add(jvmFieldRow, c);
+		c.insets = new Insets(pad, pad, pad, pad); // restore
 		c.gridwidth = 1;
+		c.fill = GridBagConstraints.HORIZONTAL; // restore after NONE used for buttons
 		c.gridy = 1; c.gridx = 0; c.weightx = 0; jvmSection.add(lblCustomSwitches, c);
 		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(switchesScroll, c);
 		c.gridwidth = 1;
