@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Atom One Light editor color scheme for RSyntaxTextArea.
+  Based on the atom/one-light-syntax theme (MIT License).
+  Original authors: GitHub / Atom team - https://github.com/atom/one-light-syntax
+  Palette uses hsl-defined values from the official theme source.
+-->
+<scheme name="Atom One Light" dark="false">
+    <!-- hsl(230,1%,98%) -->
+    <background>fafafa</background>
+    <!-- hsl(230,8%,24%) -->
+    <foreground>383a42</foreground>
+    <caret>383a42</caret>
+    <!-- light blue selection -->
+    <selection-background>d5e6ff</selection-background>
+    <selection-foreground>383a42</selection-foreground>
+    <!-- very light gray -->
+    <line-highlight>f0f0f0</line-highlight>
+    <gutter-background>fafafa</gutter-background>
+    <!-- hsl(230,4%,64%) -->
+    <gutter-foreground>9d9d9f</gutter-foreground>
+
+    <!-- hsl(301,63%,40%) purple -->
+    <token type="keyword"          fg="a626a4" bold="true"/>
+    <!-- red - secondary keywords -->
+    <token type="keyword2"         fg="e45649"/>
+    <!-- hsl(230,4%,64%) gray -->
+    <token type="comment"          fg="a0a1a7" italic="true"/>
+    <!-- green -->
+    <token type="comment-keyword"  fg="50a14f"/>
+    <!-- hsl(119,34%,47%) green -->
+    <token type="string"           fg="50a14f"/>
+    <!-- hsl(35,99%,36%) orange-brown -->
+    <token type="number"           fg="986801"/>
+    <!-- hsl(221,87%,60%) blue -->
+    <token type="function"         fg="4078f2"/>
+    <!-- red - instance variables -->
+    <token type="variable"         fg="e45649"/>
+    <!-- golden amber - type names -->
+    <token type="type"             fg="c18401"/>
+    <!-- teal - regex -->
+    <token type="regex"            fg="0184bc"/>
+    <!-- blue -->
+    <token type="annotation"       fg="4078f2"/>
+    <!-- teal -->
+    <token type="operator"         fg="0184bc"/>
+    <!-- red -->
+    <token type="preprocessor"     fg="e45649"/>
+    <!-- red -->
+    <token type="markup-tag"       fg="e45649"/>
+    <!-- golden -->
+    <token type="markup-attr"      fg="c18401"/>
+    <!-- green -->
+    <token type="markup-attr-value" fg="50a14f"/>
+    <!-- red -->
+    <token type="error"            fg="ca1243"/>
+</scheme>

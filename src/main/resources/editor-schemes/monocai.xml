@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Monocai editor color scheme for RSyntaxTextArea.
+  Based on the Monocai theme by Azohra Corporation for JetBrains IDEs (MIT License).
+  Original source: https://github.com/azohra-corporation/monocai-jetbrains
+  A minimalist dark theme with selective, vibrant syntax highlights derived
+  from the Monokai color family but with a more neutral, cooler background.
+-->
+<scheme name="Monocai" dark="true">
+    <!-- near-black charcoal -->
+    <background>1e1e1e</background>
+    <!-- warm light gray -->
+    <foreground>d4d4d4</foreground>
+    <caret>aeafad</caret>
+    <!-- dark gray selection -->
+    <selection-background>3a3a3a</selection-background>
+    <selection-foreground>d4d4d4</selection-foreground>
+    <!-- slightly lighter panel -->
+    <line-highlight>282828</line-highlight>
+    <gutter-background>1e1e1e</gutter-background>
+    <!-- medium dark gray line numbers -->
+    <gutter-foreground>5a5a5a</gutter-foreground>
+
+    <!-- Monokai hot pink/red - keywords -->
+    <token type="keyword"          fg="f92672" bold="true"/>
+    <!-- Monokai cyan - secondary keywords -->
+    <token type="keyword2"         fg="66d9e8"/>
+    <!-- warm brown-gray - comments -->
+    <token type="comment"          fg="75715e" italic="true"/>
+    <!-- Monokai green - doc keywords -->
+    <token type="comment-keyword"  fg="a6e22e"/>
+    <!-- Monokai lime green - strings -->
+    <token type="string"           fg="a6e22e"/>
+    <!-- Monokai purple - numbers (Monokai uses purple for numbers) -->
+    <token type="number"           fg="ae81ff"/>
+    <!-- Monokai lime green - functions (Monokai functions are green) -->
+    <token type="function"         fg="a6e22e"/>
+    <!-- near-white - identifiers -->
+    <token type="variable"         fg="f8f8f2"/>
+    <!-- Monokai cyan - type names -->
+    <token type="type"             fg="66d9e8"/>
+    <!-- Monokai green -->
+    <token type="regex"            fg="a6e22e"/>
+    <!-- Monokai lime -->
+    <token type="annotation"       fg="a6e22e"/>
+    <!-- Monokai hot pink - operators -->
+    <token type="operator"         fg="f92672"/>
+    <!-- Monokai purple -->
+    <token type="preprocessor"     fg="ae81ff"/>
+    <!-- Monokai hot pink -->
+    <token type="markup-tag"       fg="f92672"/>
+    <!-- Monokai lime green - attributes -->
+    <token type="markup-attr"      fg="a6e22e"/>
+    <!-- Monokai yellow - attribute values -->
+    <token type="markup-attr-value" fg="e6db74"/>
+    <!-- bright red -->
+    <token type="error"            fg="f44747"/>
+</scheme>

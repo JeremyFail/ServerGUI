@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Material Lighter editor color scheme for RSyntaxTextArea.
+  Based on the Material Theme by Elior Boukhobza (MIT License).
+  Original source: https://github.com/equinusocio/material-theme
+  Variant: Lighter - light Material Design background with saturated syntax colors.
+  Characteristic Material Theme light syntax palette.
+-->
+<scheme name="Material Lighter" dark="false">
+    <!-- near-white Material background -->
+    <background>fafafa</background>
+    <!-- teal-gray foreground -->
+    <foreground>546e7a</foreground>
+    <caret>272727</caret>
+    <!-- pale teal selection -->
+    <selection-background>cce5e3</selection-background>
+    <selection-foreground>546e7a</selection-foreground>
+    <!-- very light warm gray panel -->
+    <line-highlight>ecf0f1</line-highlight>
+    <gutter-background>fafafa</gutter-background>
+    <!-- steel blue-gray line numbers -->
+    <gutter-foreground>90a4ae</gutter-foreground>
+
+    <!-- deep purple - Material Light keywords -->
+    <token type="keyword"          fg="7c4dff" bold="true"/>
+    <!-- teal - secondary keywords -->
+    <token type="keyword2"         fg="39adb5"/>
+    <!-- light steel blue - comments -->
+    <token type="comment"          fg="90a4ae" italic="true"/>
+    <!-- grass green -->
+    <token type="comment-keyword"  fg="91b859"/>
+    <!-- grass green - strings -->
+    <token type="string"           fg="91b859"/>
+    <!-- vibrant orange - numbers -->
+    <token type="number"           fg="f76d47"/>
+    <!-- desaturated blue - functions -->
+    <token type="function"         fg="6182b8"/>
+    <!-- teal-gray - default variables -->
+    <token type="variable"         fg="546e7a"/>
+    <!-- teal - types -->
+    <token type="type"             fg="39adb5"/>
+    <!-- grass green -->
+    <token type="regex"            fg="91b859"/>
+    <!-- Material red - annotations -->
+    <token type="annotation"       fg="e53935"/>
+    <!-- teal - operators -->
+    <token type="operator"         fg="39adb5"/>
+    <!-- vibrant orange -->
+    <token type="preprocessor"     fg="f76d47"/>
+    <!-- Material red - tags -->
+    <token type="markup-tag"       fg="e53935"/>
+    <!-- blue - attributes -->
+    <token type="markup-attr"      fg="6182b8"/>
+    <!-- grass green - attribute values -->
+    <token type="markup-attr-value" fg="91b859"/>
+    <!-- Material red -->
+    <token type="error"            fg="e53935"/>
+</scheme>

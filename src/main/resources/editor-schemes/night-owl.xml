@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Night Owl editor color scheme for RSyntaxTextArea.
+  Based on the Night Owl theme by Sarah Drasner (MIT License).
+  Original source: https://github.com/sdras/night-owl-vscode-theme
+  Distinctive deep navy background with vibrant pastel syntax colors.
+-->
+<scheme name="Night Owl" dark="true">
+    <background>011627</background>
+    <foreground>d6deeb</foreground>
+    <caret>80a4c2</caret>
+    <selection-background>1d3b53</selection-background>
+    <selection-foreground>d6deeb</selection-foreground>
+    <line-highlight>010e1a</line-highlight>
+    <gutter-background>011627</gutter-background>
+    <gutter-foreground>4b6479</gutter-foreground>
+
+    <!-- purple -->
+    <token type="keyword"          fg="c792ea" bold="true"/>
+    <!-- teal - secondary keywords (e.g. this, super) -->
+    <token type="keyword2"         fg="7fdbca"/>
+    <!-- muted teal-gray -->
+    <token type="comment"          fg="637777" italic="true"/>
+    <!-- lime green -->
+    <token type="comment-keyword"  fg="addb67"/>
+    <!-- golden/peach -->
+    <token type="string"           fg="ecc48d"/>
+    <!-- orange -->
+    <token type="number"           fg="f78c6c"/>
+    <!-- blue -->
+    <token type="function"         fg="82aaff"/>
+    <!-- lime green - variables -->
+    <token type="variable"         fg="addb67"/>
+    <!-- warm yellow/peach - types -->
+    <token type="type"             fg="ffcb8b"/>
+    <!-- golden -->
+    <token type="regex"            fg="ecc48d"/>
+    <!-- lime green -->
+    <token type="annotation"       fg="addb67"/>
+    <!-- purple -->
+    <token type="operator"         fg="c792ea"/>
+    <!-- purple -->
+    <token type="preprocessor"     fg="c792ea"/>
+    <!-- teal -->
+    <token type="markup-tag"       fg="7fdbca"/>
+    <!-- lime green -->
+    <token type="markup-attr"      fg="addb67"/>
+    <!-- golden -->
+    <token type="markup-attr-value" fg="ecc48d"/>
+    <!-- red -->
+    <token type="error"            fg="ef5350"/>
+</scheme>

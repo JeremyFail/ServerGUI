@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Material Palenight editor color scheme for RSyntaxTextArea.
+  Based on the Material Theme by Elior Boukhobza (MIT License).
+  Original source: https://github.com/equinusocio/material-theme
+  Variant: Palenight - indigo/violet tinted dark background.
+  Characteristic Material Theme syntax colors shared across all MT variants.
+-->
+<scheme name="Material Palenight" dark="true">
+    <!-- deep indigo -->
+    <background>292d3e</background>
+    <!-- cool lavender-gray -->
+    <foreground>a6accd</foreground>
+    <caret>a6accd</caret>
+    <!-- selection indigo -->
+    <selection-background>343b51</selection-background>
+    <selection-foreground>a6accd</selection-foreground>
+    <!-- slightly darker panel -->
+    <line-highlight>2f3347</line-highlight>
+    <gutter-background>292d3e</gutter-background>
+    <!-- subdued blue-gray -->
+    <gutter-foreground>676e95</gutter-foreground>
+
+    <!-- purple - Material Theme signature keyword color -->
+    <token type="keyword"          fg="c792ea" bold="true"/>
+    <!-- blue - secondary keywords -->
+    <token type="keyword2"         fg="82aaff"/>
+    <!-- muted blue-gray -->
+    <token type="comment"          fg="676e95" italic="true"/>
+    <!-- sage green -->
+    <token type="comment-keyword"  fg="c3e88d"/>
+    <!-- sage green -->
+    <token type="string"           fg="c3e88d"/>
+    <!-- peach/orange -->
+    <token type="number"           fg="f78c6c"/>
+    <!-- blue -->
+    <token type="function"         fg="82aaff"/>
+    <!-- near-white - variables/identifiers -->
+    <token type="variable"         fg="eeffff"/>
+    <!-- golden yellow - types/classes -->
+    <token type="type"             fg="ffcb6b"/>
+    <!-- sage green -->
+    <token type="regex"            fg="c3e88d"/>
+    <!-- golden yellow -->
+    <token type="annotation"       fg="ffcb6b"/>
+    <!-- sky cyan - operators -->
+    <token type="operator"         fg="89ddff"/>
+    <!-- peach/orange -->
+    <token type="preprocessor"     fg="f78c6c"/>
+    <!-- soft pink/red - markup tags -->
+    <token type="markup-tag"       fg="f07178"/>
+    <!-- golden yellow - attributes -->
+    <token type="markup-attr"      fg="ffcb6b"/>
+    <!-- sage green - attribute values -->
+    <token type="markup-attr-value" fg="c3e88d"/>
+    <!-- soft pink/red -->
+    <token type="error"            fg="f07178"/>
+</scheme>

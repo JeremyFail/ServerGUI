@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Arc Dark editor color scheme for RSyntaxTextArea.
+  Based on the Arc Dark theme ported to JetBrains IDEs (MIT License).
+  Arc is a GTK theme by horst3211; JetBrains ports include multiple contributors.
+  Uses a flat blue-gray aesthetic with One Dark-influenced syntax colors.
+  Also used for the Arc Dark Orange variant (same syntax, different UI accent).
+-->
+<scheme name="Arc Dark" dark="true">
+    <!-- Arc Dark background - dark blue-gray -->
+    <background>2f343f</background>
+    <!-- light blue-gray foreground -->
+    <foreground>d3dae3</foreground>
+    <caret>d3dae3</caret>
+    <!-- slightly lighter selection -->
+    <selection-background>3d4454</selection-background>
+    <selection-foreground>d3dae3</selection-foreground>
+    <!-- slightly darker than bg -->
+    <line-highlight>282c35</line-highlight>
+    <gutter-background>2f343f</gutter-background>
+    <!-- muted slate blue-gray -->
+    <gutter-foreground>7c818c</gutter-foreground>
+
+    <!-- purple - keywords -->
+    <token type="keyword"          fg="c678dd" bold="true"/>
+    <!-- Arc signature blue - secondary keywords -->
+    <token type="keyword2"         fg="5294e2"/>
+    <!-- slate gray - comments -->
+    <token type="comment"          fg="7c818c" italic="true"/>
+    <!-- soft green -->
+    <token type="comment-keyword"  fg="98c379"/>
+    <!-- soft sage green - strings -->
+    <token type="string"           fg="89c980"/>
+    <!-- warm orange - numbers -->
+    <token type="number"           fg="f08d49"/>
+    <!-- Arc blue - functions -->
+    <token type="function"         fg="5294e2"/>
+    <!-- default fg - identifiers -->
+    <token type="variable"         fg="d3dae3"/>
+    <!-- warm yellow - types/classes -->
+    <token type="type"             fg="e5c07b"/>
+    <!-- soft green -->
+    <token type="regex"            fg="89c980"/>
+    <!-- warm orange -->
+    <token type="annotation"       fg="f08d49"/>
+    <!-- teal/cyan - operators -->
+    <token type="operator"         fg="5fb3b3"/>
+    <!-- warm orange -->
+    <token type="preprocessor"     fg="f08d49"/>
+    <!-- warm red - markup tags -->
+    <token type="markup-tag"       fg="e06c75"/>
+    <!-- warm yellow - attributes -->
+    <token type="markup-attr"      fg="e5c07b"/>
+    <!-- soft green - attribute values -->
+    <token type="markup-attr-value" fg="89c980"/>
+    <!-- red -->
+    <token type="error"            fg="e06c75"/>
+</scheme>

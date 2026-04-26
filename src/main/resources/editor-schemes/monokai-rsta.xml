@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Monokai (RSyntaxTextArea) editor color scheme.
+  Colors are taken verbatim from the built-in monokai.xml shipped with
+  RSyntaxTextArea 3.3.4 (org/fife/ui/rsyntaxtextarea/themes/monokai.xml).
+  RSyntaxTextArea is Copyright 2020 Robert Futrell, BSD 3-clause licence.
+
+  Background, foreground, selection, and caret are listed here as fallbacks
+  only.  EditorSchemeApplier prefers UIManager values for those four properties,
+  so the active FlatLaf (Monokai Pro) look-and-feel background is used in
+  practice and the XML values below are never reached under normal operation.
+  The editor therefore keeps the exact Monokai Pro chrome while getting
+  RSyntaxTextArea's own syntax token palette.
+
+  Gutter background is intentionally omitted so it continues to be set by
+  FlatLaf's updateComponentTreeUI rather than being overridden here.
+-->
+<scheme name="Monokai (RSyntaxTextArea)" dark="true">
+    <!-- Fallback only – UIManager / FlatLaf theme value always takes precedence. -->
+    <background>2E2E2E</background>
+    <foreground>F9F9F9</foreground>
+    <caret>D2D2D2</caret>
+    <selection-background>4C4C4C</selection-background>
+    <line-highlight>383A38</line-highlight>
+    <!-- Slightly darker than the editor background; a common Monokai Pro gutter shade. -->
+    <gutter-background>2D2D2D</gutter-background>
+    <gutter-foreground>81969A</gutter-foreground>
+
+    <!-- RESERVED_WORD: hot pink -->
+    <token type="keyword"          fg="F92672"/>
+    <!-- DATA_TYPE: cyan/teal (bold in RSTA) -->
+    <token type="keyword2"         fg="52E3F6" bold="true"/>
+    <!-- COMMENT_DOCUMENTATION: mid-gray -->
+    <token type="comment"          fg="878787"/>
+    <!-- COMMENT_KEYWORD: orange -->
+    <token type="comment-keyword"  fg="FD971F"/>
+    <!-- LITERAL_STRING_DOUBLE_QUOTE: yellow-green -->
+    <token type="string"           fg="E3ED77"/>
+    <!-- LITERAL_NUMBER_*: lavender/purple -->
+    <token type="number"           fg="AE81FF"/>
+    <!-- FUNCTION: cyan/teal -->
+    <token type="function"         fg="52E3F6"/>
+    <!-- VARIABLE: orange -->
+    <token type="variable"         fg="FD971F"/>
+    <!-- (unused by applySyntaxScheme; included for completeness) -->
+    <token type="type"             fg="52E3F6" bold="true"/>
+    <!-- REGEX: lavender, same as numbers in RSTA monokai -->
+    <token type="regex"            fg="AE81FF"/>
+    <!-- ANNOTATION: orange -->
+    <token type="annotation"       fg="FD971F"/>
+    <!-- OPERATOR: hot pink, same as keywords -->
+    <token type="operator"         fg="F92672"/>
+    <!-- PREPROCESSOR: muted purple -->
+    <token type="preprocessor"     fg="A082BD"/>
+    <!-- MARKUP_TAG_DELIMITER / NAME: hot pink delimiter color -->
+    <token type="markup-tag"       fg="F92672"/>
+    <!-- MARKUP_TAG_ATTRIBUTE: olive/khaki -->
+    <token type="markup-attr"      fg="B3B689"/>
+    <!-- MARKUP_TAG_ATTRIBUTE_VALUE: light gray-white -->
+    <token type="markup-attr-value" fg="E1E2CF"/>
+    <!-- ERROR_*: red background in RSTA; we set it as the foreground -->
+    <token type="error"            fg="D82323"/>
+</scheme>

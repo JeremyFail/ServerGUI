@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Spacegray editor color scheme for RSyntaxTextArea.
+  Based on the Spacegray theme by Gadzhi Kharkharov (MIT License).
+  Original Sublime Text theme: https://github.com/kkga/spacegray
+  JetBrains port: https://github.com/mseemann/spacegray-jetbrains
+  Uses the Base16 Ocean palette - a classic, restrained dark color scheme.
+  Muted blue-gray tones with subtle, desaturated syntax colors.
+-->
+<scheme name="Spacegray" dark="true">
+    <!-- Base16 Ocean base00 - dark blue-gray -->
+    <background>2b303b</background>
+    <!-- Base16 Ocean base05 - light steel gray -->
+    <foreground>c0c5ce</foreground>
+    <caret>c0c5ce</caret>
+    <!-- Base16 Ocean base02 - medium blue-gray selection -->
+    <selection-background>4f5b66</selection-background>
+    <selection-foreground>c0c5ce</selection-foreground>
+    <!-- Base16 Ocean base01 - slightly lighter panel -->
+    <line-highlight>343d46</line-highlight>
+    <gutter-background>2b303b</gutter-background>
+    <!-- Base16 Ocean base03 - subdued gray-blue line numbers -->
+    <gutter-foreground>65737e</gutter-foreground>
+
+    <!-- Base16 Ocean base0E - purple/lavender - keywords -->
+    <token type="keyword"          fg="b48ead" bold="true"/>
+    <!-- Base16 Ocean base0D - blue - secondary keywords -->
+    <token type="keyword2"         fg="8fa1b3"/>
+    <!-- Base16 Ocean base03 - gray-blue - comments -->
+    <token type="comment"          fg="65737e" italic="true"/>
+    <!-- Base16 Ocean base0B - sage green - doc keywords -->
+    <token type="comment-keyword"  fg="a3be8c"/>
+    <!-- Base16 Ocean base0B - sage green - strings -->
+    <token type="string"           fg="a3be8c"/>
+    <!-- Base16 Ocean base09 - terracotta orange - numbers -->
+    <token type="number"           fg="d08770"/>
+    <!-- Base16 Ocean base0D - dusty blue - functions -->
+    <token type="function"         fg="8fa1b3"/>
+    <!-- Base16 Ocean base05 - default fg - variables -->
+    <token type="variable"         fg="c0c5ce"/>
+    <!-- Base16 Ocean base0A - warm yellow - types/classes -->
+    <token type="type"             fg="ebcb8b"/>
+    <!-- Base16 Ocean base0C - teal/aqua - regex -->
+    <token type="regex"            fg="96b5b4"/>
+    <!-- Base16 Ocean base09 - terracotta -->
+    <token type="annotation"       fg="d08770"/>
+    <!-- Base16 Ocean base0C - teal/aqua - operators -->
+    <token type="operator"         fg="96b5b4"/>
+    <!-- Base16 Ocean base0E - purple -->
+    <token type="preprocessor"     fg="b48ead"/>
+    <!-- Base16 Ocean base08 - red - markup tags -->
+    <token type="markup-tag"       fg="bf616a"/>
+    <!-- Base16 Ocean base0A - yellow - attributes -->
+    <token type="markup-attr"      fg="ebcb8b"/>
+    <!-- Base16 Ocean base0B - green - attribute values -->
+    <token type="markup-attr-value" fg="a3be8c"/>
+    <!-- Base16 Ocean base08 - red -->
+    <token type="error"            fg="bf616a"/>
+</scheme>

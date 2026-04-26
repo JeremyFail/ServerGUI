@@ -24,6 +24,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -130,8 +131,10 @@ public class FileEditor extends JFrame {
 		scrollPane.setLineNumbersEnabled(true);
 		scrollPane.setFoldIndicatorEnabled(true);
 		contentPane.add(scrollPane, BorderLayout.CENTER);
-		// Apply the editor color scheme after the scroll pane is built so the gutter is accessible.
-		EditorSchemeApplier.apply(textArea, currentAppTheme);
+		// Defer scheme application until after setVisible(true) so Swing's first
+		// updateUI() pass (which resets the Gutter background to the L&F default)
+		// has already completed before we paint our custom gutter colors over it.
+		SwingUtilities.invokeLater(() -> EditorSchemeApplier.apply(textArea, currentAppTheme));
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);

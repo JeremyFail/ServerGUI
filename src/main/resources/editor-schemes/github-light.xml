@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GitHub Light editor color scheme for RSyntaxTextArea.
+  Based on the GitHub Light theme by GitHub/Primer (MIT License).
+  Original source: https://github.com/primer/github-vscode-theme
+  Matches GitHub's light editor color palette used on github.com.
+-->
+<scheme name="GitHub Light" dark="false">
+    <!-- pure white -->
+    <background>ffffff</background>
+    <!-- near-black dark gray -->
+    <foreground>24292f</foreground>
+    <caret>24292f</caret>
+    <!-- very light blue tint selection -->
+    <selection-background>cce5ff</selection-background>
+    <selection-foreground>24292f</selection-foreground>
+    <!-- very light gray panel -->
+    <line-highlight>f6f8fa</line-highlight>
+    <gutter-background>f6f8fa</gutter-background>
+    <!-- medium gray line numbers -->
+    <gutter-foreground>87929d</gutter-foreground>
+
+    <!-- GitHub red - keywords -->
+    <token type="keyword"          fg="cf222e" bold="true"/>
+    <!-- orange-brown - types -->
+    <token type="keyword2"         fg="953800"/>
+    <!-- slate gray - comments -->
+    <token type="comment"          fg="6e7781" italic="true"/>
+    <!-- dark forest green -->
+    <token type="comment-keyword"  fg="116329"/>
+    <!-- deep navy blue - strings -->
+    <token type="string"           fg="0a3069"/>
+    <!-- medium blue - numbers -->
+    <token type="number"           fg="0550ae"/>
+    <!-- purple - functions/methods -->
+    <token type="function"         fg="8250df"/>
+    <!-- default fg -->
+    <token type="variable"         fg="24292f"/>
+    <!-- orange-brown - type names -->
+    <token type="type"             fg="953800"/>
+    <!-- deep navy -->
+    <token type="regex"            fg="0a3069"/>
+    <!-- orange-brown -->
+    <token type="annotation"       fg="953800"/>
+    <!-- GitHub red -->
+    <token type="operator"         fg="cf222e"/>
+    <!-- GitHub red -->
+    <token type="preprocessor"     fg="cf222e"/>
+    <!-- dark green - HTML tags -->
+    <token type="markup-tag"       fg="116329"/>
+    <!-- medium blue - attributes -->
+    <token type="markup-attr"      fg="0550ae"/>
+    <!-- deep navy - attribute values -->
+    <token type="markup-attr-value" fg="0a3069"/>
+    <!-- GitHub red -->
+    <token type="error"            fg="cf222e"/>
+</scheme>

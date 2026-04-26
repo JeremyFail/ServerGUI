@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Night Owl Light editor color scheme for RSyntaxTextArea.
+  Based on the Night Owl Light theme by Sarah Drasner (MIT License).
+  Original source: https://github.com/sdras/night-owl-vscode-theme
+  Light variant of Night Owl with deep purple and teal tones.
+-->
+<scheme name="Night Owl Light" dark="false">
+    <background>fbfbfb</background>
+    <foreground>403f53</foreground>
+    <caret>403f53</caret>
+    <!-- lavender tint -->
+    <selection-background>d5d2ff</selection-background>
+    <selection-foreground>403f53</selection-foreground>
+    <line-highlight>efeff1</line-highlight>
+    <gutter-background>fbfbfb</gutter-background>
+    <gutter-foreground>989fb1</gutter-foreground>
+
+    <!-- deep purple -->
+    <token type="keyword"          fg="994cc3" bold="true"/>
+    <!-- dark red/maroon -->
+    <token type="keyword2"         fg="bc5454"/>
+    <!-- blue-gray -->
+    <token type="comment"          fg="989fb1" italic="true"/>
+    <!-- blue -->
+    <token type="comment-keyword"  fg="4876d6"/>
+    <!-- dark wine red -->
+    <token type="string"           fg="c96765"/>
+    <!-- dark magenta -->
+    <token type="number"           fg="aa0982"/>
+    <!-- blue -->
+    <token type="function"         fg="4876d6"/>
+    <!-- teal -->
+    <token type="variable"         fg="0c969b"/>
+    <!-- deep purple -->
+    <token type="type"             fg="994cc3"/>
+    <!-- dark wine -->
+    <token type="regex"            fg="c96765"/>
+    <!-- dark red -->
+    <token type="annotation"       fg="bc5454"/>
+    <!-- deep purple -->
+    <token type="operator"         fg="994cc3"/>
+    <!-- deep purple -->
+    <token type="preprocessor"     fg="994cc3"/>
+    <!-- dark red -->
+    <token type="markup-tag"       fg="bc5454"/>
+    <!-- teal -->
+    <token type="markup-attr"      fg="0c969b"/>
+    <!-- dark wine -->
+    <token type="markup-attr-value" fg="c96765"/>
+    <!-- orange-red -->
+    <token type="error"            fg="e27152"/>
+</scheme>

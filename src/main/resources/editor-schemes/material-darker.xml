@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Material Darker editor color scheme for RSyntaxTextArea.
+  Based on the Material Theme by Elior Boukhobza (MIT License).
+  Original source: https://github.com/equinusocio/material-theme
+  Variant: Darker - very dark neutral gray background with bright white foreground.
+  Characteristic Material Theme syntax colors shared across all MT variants.
+-->
+<scheme name="Material Darker" dark="true">
+    <!-- very dark neutral gray -->
+    <background>212121</background>
+    <!-- bright near-white - high contrast fg -->
+    <foreground>eeffff</foreground>
+    <caret>ffffff</caret>
+    <!-- dark gray selection -->
+    <selection-background>353535</selection-background>
+    <selection-foreground>eeffff</selection-foreground>
+    <!-- slightly darker panel -->
+    <line-highlight>1a1a1a</line-highlight>
+    <gutter-background>1e1e1e</gutter-background>
+    <!-- medium gray line numbers -->
+    <gutter-foreground>616161</gutter-foreground>
+
+    <!-- purple - Material Theme signature -->
+    <token type="keyword"          fg="c792ea" bold="true"/>
+    <!-- blue -->
+    <token type="keyword2"         fg="82aaff"/>
+    <!-- medium gray - comments -->
+    <token type="comment"          fg="616161" italic="true"/>
+    <!-- sage green -->
+    <token type="comment-keyword"  fg="c3e88d"/>
+    <!-- sage green -->
+    <token type="string"           fg="c3e88d"/>
+    <!-- peach/orange -->
+    <token type="number"           fg="f78c6c"/>
+    <!-- blue -->
+    <token type="function"         fg="82aaff"/>
+    <!-- near-white -->
+    <token type="variable"         fg="eeffff"/>
+    <!-- golden yellow -->
+    <token type="type"             fg="ffcb6b"/>
+    <!-- sage green -->
+    <token type="regex"            fg="c3e88d"/>
+    <!-- golden yellow -->
+    <token type="annotation"       fg="ffcb6b"/>
+    <!-- sky cyan -->
+    <token type="operator"         fg="89ddff"/>
+    <!-- peach/orange -->
+    <token type="preprocessor"     fg="f78c6c"/>
+    <!-- soft pink/red -->
+    <token type="markup-tag"       fg="f07178"/>
+    <!-- golden yellow -->
+    <token type="markup-attr"      fg="ffcb6b"/>
+    <!-- sage green -->
+    <token type="markup-attr-value" fg="c3e88d"/>
+    <!-- soft pink/red -->
+    <token type="error"            fg="f07178"/>
+</scheme>

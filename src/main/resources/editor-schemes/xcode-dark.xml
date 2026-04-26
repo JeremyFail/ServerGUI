@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Xcode Dark editor color scheme for RSyntaxTextArea.
+  Based on Apple's Xcode Dark appearance color set (factual/documented colors).
+  Xcode is Apple's official IDE; the color scheme is derived from Apple's
+  publicly documented and widely referenced dark editor palette.
+  Distinctive features: pink keywords, salmon strings, gold numbers, lavender functions.
+-->
+<scheme name="Xcode Dark" dark="true">
+    <!-- Xcode dark background - very dark charcoal-navy -->
+    <background>1f1f24</background>
+    <!-- near-white slightly cool foreground -->
+    <foreground>dfdfe0</foreground>
+    <caret>dfdfe0</caret>
+    <!-- subtle dark selection -->
+    <selection-background>2c2c2e</selection-background>
+    <selection-foreground>dfdfe0</selection-foreground>
+    <!-- slightly lighter current line -->
+    <line-highlight>2a2a2f</line-highlight>
+    <gutter-background>1f1f24</gutter-background>
+    <!-- cool dark blue-gray line numbers -->
+    <gutter-foreground>6c7986</gutter-foreground>
+
+    <!-- Xcode signature pink - keywords -->
+    <token type="keyword"          fg="ff7ab2" bold="true"/>
+    <!-- Xcode mint/teal - secondary keywords (e.g. this, super) -->
+    <token type="keyword2"         fg="acf2e4"/>
+    <!-- Xcode cool blue-gray - comments -->
+    <token type="comment"          fg="6c7986" italic="true"/>
+    <!-- Xcode mint - doc special keywords -->
+    <token type="comment-keyword"  fg="acf2e4"/>
+    <!-- Xcode salmon/orange - strings -->
+    <token type="string"           fg="ff8170"/>
+    <!-- Xcode warm gold - numbers -->
+    <token type="number"           fg="d9c97c"/>
+    <!-- Xcode lavender/violet - functions/methods -->
+    <token type="function"         fg="dabaff"/>
+    <!-- default fg - identifiers -->
+    <token type="variable"         fg="dfdfe0"/>
+    <!-- Xcode mint - type names -->
+    <token type="type"             fg="acf2e4"/>
+    <!-- Xcode salmon -->
+    <token type="regex"            fg="ff8170"/>
+    <!-- Xcode orange/amber - annotations/attributes -->
+    <token type="annotation"       fg="ffa14f"/>
+    <!-- default fg - operators -->
+    <token type="operator"         fg="dfdfe0"/>
+    <!-- Xcode orange - preprocessor macros -->
+    <token type="preprocessor"     fg="ffa14f"/>
+    <!-- Xcode pink - markup tags -->
+    <token type="markup-tag"       fg="ff7ab2"/>
+    <!-- Xcode lavender - attributes -->
+    <token type="markup-attr"      fg="dabaff"/>
+    <!-- Xcode salmon - attribute values -->
+    <token type="markup-attr-value" fg="ff8170"/>
+    <!-- red -->
+    <token type="error"            fg="ff453a"/>
+</scheme>

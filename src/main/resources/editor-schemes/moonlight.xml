@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Moonlight editor color scheme for RSyntaxTextArea.
+  Based on the Moonlight theme by atomiks (MIT License).
+  Original source: https://github.com/atomiks/moonlight-vscode-theme
+  A dark blue-indigo theme with pastel pink/green/blue syntax highlights.
+-->
+<scheme name="Moonlight" dark="true">
+    <!-- deep indigo -->
+    <background>212337</background>
+    <!-- soft lavender-white -->
+    <foreground>c8d3f5</foreground>
+    <caret>c8d3f5</caret>
+    <!-- dark indigo blue selection -->
+    <selection-background>2d3f76</selection-background>
+    <selection-foreground>c8d3f5</selection-foreground>
+    <!-- slightly darker indigo -->
+    <line-highlight>1e2030</line-highlight>
+    <gutter-background>212337</gutter-background>
+    <!-- muted indigo -->
+    <gutter-foreground>444a73</gutter-foreground>
+
+    <!-- soft pink/rose - keywords -->
+    <token type="keyword"          fg="ff98a4" bold="true"/>
+    <!-- lavender/pink - secondary keywords -->
+    <token type="keyword2"         fg="fca7ea"/>
+    <!-- blue-gray -->
+    <token type="comment"          fg="636da6" italic="true"/>
+    <!-- sage green -->
+    <token type="comment-keyword"  fg="c3e88d"/>
+    <!-- sage green -->
+    <token type="string"           fg="c3e88d"/>
+    <!-- warm orange -->
+    <token type="number"           fg="ff966c"/>
+    <!-- soft blue -->
+    <token type="function"         fg="82aaff"/>
+    <!-- lavender - foreground default -->
+    <token type="variable"         fg="c8d3f5"/>
+    <!-- lavender/pink - type names -->
+    <token type="type"             fg="fca7ea"/>
+    <!-- sage green -->
+    <token type="regex"            fg="c3e88d"/>
+    <!-- warm orange -->
+    <token type="annotation"       fg="ff966c"/>
+    <!-- cyan -->
+    <token type="operator"         fg="89ddff"/>
+    <!-- purple -->
+    <token type="preprocessor"     fg="c792ea"/>
+    <!-- soft pink/rose -->
+    <token type="markup-tag"       fg="ff98a4"/>
+    <!-- soft blue -->
+    <token type="markup-attr"      fg="82aaff"/>
+    <!-- sage green -->
+    <token type="markup-attr-value" fg="c3e88d"/>
+    <!-- bright red -->
+    <token type="error"            fg="ff5370"/>
+</scheme>
