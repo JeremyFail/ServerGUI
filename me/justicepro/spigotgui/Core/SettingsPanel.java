@@ -101,7 +101,8 @@ public class SettingsPanel extends JPanel {
 		customJvmArgsField.setText(serverSettings.getCustomArgs());
 		customJvmSwitchesField.setText(serverSettings.getCustomSwitches());
 
-		customJvmPathField = new JTextField(30);
+		customJvmPathField = new JTextField();
+		customJvmPathField.setColumns(1);
 		customJvmPathField.setEditable(false);
 		String savedJvmPath = serverSettings.getCustomJvmPath();
 		customJvmPathField.setText(savedJvmPath != null && !savedJvmPath.isEmpty() ? savedJvmPath : "<default>");
@@ -109,7 +110,8 @@ public class SettingsPanel extends JPanel {
 		JLabel lblCustomArgs = new JLabel("Custom Arguments");
 		JLabel lblCustomSwitches = new JLabel("Custom Switches");
 
-		serverFileField = new JTextField(30);
+		serverFileField = new JTextField();
+		serverFileField.setColumns(1);
 		serverFileField.setEditable(false);
 		serverFileField.setToolTipText("Path to the server JAR file. Use \"Set Server File\" to change.");
 		File jarFile = gui.getJarFile();
@@ -320,6 +322,11 @@ public class SettingsPanel extends JPanel {
 		btnBrowseJvm.setToolTipText(jvmTip);
 		JButton btnResetJvm = new JButton("Reset");
 		btnResetJvm.setToolTipText("Clear the custom JVM path and use the default (same JVM as this app).");
+		int jvmBtnH = btnBrowseJvm.getPreferredSize().height;
+		int browseTextW = btnBrowseJvm.getFontMetrics(btnBrowseJvm.getFont()).stringWidth("Browse...");
+		btnBrowseJvm.setPreferredSize(new Dimension(browseTextW + 24, jvmBtnH));
+		btnBrowseJvm.setMinimumSize(new Dimension(40, jvmBtnH));
+		btnResetJvm.setMinimumSize(new Dimension(40, btnResetJvm.getPreferredSize().height));
 		btnBrowseJvm.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -347,12 +354,14 @@ public class SettingsPanel extends JPanel {
 		jvmBtnPanel.add(btnBrowseJvm);
 		jvmBtnPanel.add(Box.createHorizontalStrut(4));
 		jvmBtnPanel.add(btnResetJvm);
+		// Single BorderLayout row spanning all 3 columns: label WEST, buttons EAST, field CENTER.
+		// This guarantees the field is dynamic and the buttons are always flush right.
 		JPanel jvmRow = new JPanel(new BorderLayout(8, 0));
+		jvmRow.add(lblCustomJvm, BorderLayout.WEST);
 		jvmRow.add(customJvmPathField, BorderLayout.CENTER);
 		jvmRow.add(jvmBtnPanel, BorderLayout.EAST);
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 0; c.gridy = 0; c.weightx = 0; jvmSection.add(lblCustomJvm, c);
-		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(jvmRow, c);
+		c.gridx = 0; c.gridy = 0; c.gridwidth = 3; c.weightx = 1; jvmSection.add(jvmRow, c);
 		c.gridwidth = 1;
 		c.gridy = 1; c.gridx = 0; c.weightx = 0; jvmSection.add(lblCustomSwitches, c);
 		c.gridx = 1; c.gridwidth = 2; c.weightx = 1; jvmSection.add(switchesScroll, c);
