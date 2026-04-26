@@ -34,14 +34,14 @@ public class ReporterWindow extends JFrame {
 		
 		JScrollPane scrollPane = new JScrollPane();
 		
-		JButton btnExitSpigotgui = new JButton("Exit SpigotGUI");
+		JButton btnExitSpigotgui = new JButton("Exit ServerGUI");
 		btnExitSpigotgui.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.exit(1);
 			}
 		});
 		
-		JButton btnContinueSpigotgui = new JButton("Continue SpigotGUI");
+		JButton btnContinueSpigotgui = new JButton("Continue ServerGUI");
 		btnContinueSpigotgui.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
@@ -55,7 +55,7 @@ public class ReporterWindow extends JFrame {
 			}
 		});
 		
-		JLabel lblPleaseReportThis = new JLabel("Please report this in the SpigotGUI Remastered Thread.");
+		JLabel lblPleaseReportThis = new JLabel("Please report this in the ServerGUI GitHub Issues.");
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)

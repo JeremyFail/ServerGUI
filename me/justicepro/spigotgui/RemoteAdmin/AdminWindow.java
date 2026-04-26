@@ -76,7 +76,7 @@ public class AdminWindow extends JFrame implements PacketHandler {
 		client = new RClient(ip, this);
 		client.start();
 
-		setTitle("Remote Admin - SpigotGUI Remastered");
+		setTitle("Remote Admin - ServerGUI");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 642, 508);

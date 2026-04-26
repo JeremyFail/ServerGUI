@@ -29,7 +29,7 @@ public class InstructionWindow extends JFrame {
 	 * @throws Exception 
 	 */
 	public InstructionWindow() throws Exception {
-		setTitle("Instruction Manual - SpigotGUI Remastered");
+		setTitle("Instruction Manual - ServerGUI");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 643, 631);
 		contentPane = new JPanel();

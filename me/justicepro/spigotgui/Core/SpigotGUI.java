@@ -80,7 +80,7 @@ import me.justicepro.spigotgui.Utils.Dialogs;
 import me.justicepro.spigotgui.Utils.Player;
 
 /**
- * Main application frame for SpigotGUI Remastered. Builds the tabbed UI (Console, Players,
+ * Main application frame for ServerGUI. Builds the tabbed UI (Console, Players,
  * Resources, Settings, Files, Module List, Remote Admin, About/Help) and coordinates server
  * lifecycle, settings persistence, and console output. Tab content is delegated to panel classes
  * in this package (ConsolePanel, PlayersPanel, FilesPanel, etc.); Settings and server top bar
@@ -147,6 +147,12 @@ public class SpigotGUI extends JFrame {
 	public static ServerHandler serverHandler = new ServerHandler();
 
 	public static final String versionTag = getVersionTag();
+
+	// TODO: Refactor to a helper class?
+	/** ANSI escape codes for console colors. */
+	public static final String green = "\u001B[32m";
+	public static final String red = "\u001B[31m";
+	public static final String reset = "\u001B[0m";
 
 	/** 
 	 * Get the version tag from the pom.xml file.
@@ -221,7 +227,7 @@ public class SpigotGUI extends JFrame {
 			initialThemeForSession = settings.getTheme();
 		}
 		//setIconImage(ImageIO.read(getClass().getResourceAsStream("/spigotgui.png")));
-		setTitle("SpigotGUI Remastered (" + versionTag + ")");
+		setTitle("ServerGUI (" + versionTag + ")");
 		module = new ModuleCore();
 		module.init();
 		ModuleManager.registerModule(module);
@@ -438,15 +444,15 @@ public class SpigotGUI extends JFrame {
 	}
 
 	public static void saveSettings(Settings settings) throws IOException {
-		ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(new File("spigotgui.settings")));
+		ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(new File("servergui.settings")));
 		output.writeObject(settings);
 		output.flush();
 		output.close();
 	}
 
 	public static Settings loadSettings() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
-		File file = new File("spigotgui.settings");
-		File backupFile = new File("spigotgui.settings.old");
+		File file = new File("servergui.settings");
+		File backupFile = new File("servergui.settings.old");
 
 		if (!file.exists()) {
 			// No main file - try backup (e.g. from a previous failed load)
@@ -628,8 +634,13 @@ public class SpigotGUI extends JFrame {
 		}
 	}
 
+	private static String noguiArgs(String extraJarArgs) {
+		String t = extraJarArgs == null ? "" : extraJarArgs.trim();
+		return t.isEmpty() ? "nogui" : "nogui " + t;
+	}
+
 	public void startServer() throws IOException {
-		startServer("nogui " + settingsPanel.getCustomJvmArgsField().getText(), Server.makeMemory(settingsPanel.getMinRam().getValue() + "M", settingsPanel.getMaxRam().getValue() + "M") + " " + settingsPanel.getCustomJvmSwitchesField().getText());
+		startServer(settingsPanel.getCustomJvmArgsField().getText().trim(), Server.makeMemory(settingsPanel.getMinRam().getValue() + "M", settingsPanel.getMaxRam().getValue() + "M") + " " + settingsPanel.getCustomJvmSwitchesField().getText());
 	}
 
 	public void startServer(String args, String switches) throws IOException {
@@ -676,7 +687,7 @@ public class SpigotGUI extends JFrame {
 		if (server != null) {
 
 			if (!server.isRunning()) {
-				server = new Server(jarFile, "nogui " + args, switches);
+				server = new Server(jarFile, noguiArgs(args), switches);
 				try {
 					server.start();
 				} catch (IOException | ProcessException e) {
@@ -689,7 +700,7 @@ public class SpigotGUI extends JFrame {
 			}
 
 		}else {
-			server = new Server(jarFile, "nogui " + args, switches);
+			server = new Server(jarFile, noguiArgs(args), switches);
 			try {
 				server.start();
 			} catch (IOException | ProcessException e) {
@@ -909,6 +920,23 @@ public class SpigotGUI extends JFrame {
 			}
 		}
 
+	}
+
+	/**
+	 * Prints red lines at the top of the console when {@link me.justicepro.spigotgui.Server} rewrites legacy JVM switches.
+	 */
+	public static void appendJvmNormalizationWarnings(java.util.List<String> warnings) {
+		if (instance == null || warnings == null || warnings.isEmpty()) return;
+		instance.addToConsole(getPrefix() + red + "Some JVM switches in Server Settings were adjusted for this Java version:" + reset);
+		for (String w : warnings) {
+			instance.addToConsole(red + "  - " + w + reset);
+		}
+		instance.addToConsole(red + "Update JVM switches in Server Settings to modern forms to avoid this message." + reset);
+	}
+
+	/** Returns the prefix for the console for internal SpigotGUI messages. */
+	public static String getPrefix() {
+		return green + "[ServerGUI] " + reset;
 	}
 
 	public void addToConsole(String message) {
@@ -1190,7 +1218,7 @@ public class SpigotGUI extends JFrame {
 				}
 				restart = false;
 			}else {
-				setTitle("SpigotGUI Remastered (" + versionTag + ")");
+				setTitle("ServerGUI (" + versionTag + ")");
 				try {
 					setActive(false);
 				} catch (IOException e) {
@@ -1236,7 +1264,7 @@ public class SpigotGUI extends JFrame {
 		}
 
 		public void setVersionDisplay() {
-			setTitle("SpigotGUI Remastered (" + versionTag + ") - [" + getServerType().getName() + "]");
+			setTitle("ServerGUI (" + versionTag + ") - [" + getServerType().getName() + "]");
 		}
 
 		@Override

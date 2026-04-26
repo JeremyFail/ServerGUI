@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>spigotgui-remastered</name>
-	<comment>SpigotGUI Remastered - Maven project with source at root</comment>
+	<name>servergui</name>
+	<comment>ServerGUI - Maven project with source at root</comment>
 	<projects>
 	</projects>
 	<buildSpec>

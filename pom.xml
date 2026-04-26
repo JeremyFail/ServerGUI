@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.justicepro</groupId>
-    <artifactId>spigotgui-remastered</artifactId>
+    <artifactId>servergui</artifactId>
     <version>1.1.3</version>
     <packaging>jar</packaging>
-    <name>SpigotGUI Remastered</name>
+    <name>ServerGUI</name>
     <description>Desktop GUI for running and administrating Minecraft servers</description>
 
     <properties>
@@ -53,6 +53,7 @@
     </dependencies>
 
     <build>
+        <finalName>ServerGUI ${project.version}</finalName>
         <!-- Use project root as source root so existing package layout is unchanged -->
         <sourceDirectory>.</sourceDirectory>
         <resources>

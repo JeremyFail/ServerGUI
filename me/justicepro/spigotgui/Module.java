@@ -17,7 +17,7 @@ public class Module {
 	private ServerType serverType = ServerType.Unknown;
 	
 	/**
-	 * Modules for SpigotGUI
+	 * Modules for ServerGUI
 	 * @param name The module name
 	 */
 	public Module(String name) {
