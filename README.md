@@ -1,4 +1,7 @@
-# ServerGUI
+![ServerGUI Logo](https://jeremyfail.dev/projects/programs/servergui/img/hero.png)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
 ServerGUI is a desktop-based GUI for running and administrating Minecraft servers.
 
 This is a fork of the original [SpigotGUI Remastered](https://www.spigotmc.org/resources/spigotgui-remastered.62417/) by JusticePro, which itself was a remastered edition of [SpigotGUI](https://spigotmc.org/resources/spigotgui.55266/) by JusticePro, which itself was a recreation of [BukkitGUI](https://bukkit.org/threads/tool-windows-mac-linux-gui-bukkitgui-multiplatform-user-interface-for-your-server.242058). I made some modifications for my own use, but may continue to improve this further with time.
