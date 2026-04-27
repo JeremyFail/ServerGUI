@@ -10,6 +10,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import me.justicepro.spigotgui.Utils.AppIcons;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -25,6 +26,7 @@ public class ReporterWindow extends JFrame {
 	 * Create the frame.
 	 */
 	public ReporterWindow(Exception e) {
+		setIconImages(AppIcons.getIcons());
 		setTitle(e.toString() + " - Bug Reporter");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 650, 550);

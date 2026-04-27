@@ -19,6 +19,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import me.justicepro.spigotgui.Utils.AppIcons;
 
 public class UserWindow extends JFrame {
 
@@ -30,6 +31,7 @@ public class UserWindow extends JFrame {
 	 */
 	public UserWindow(User user, ServerWindow window) {
 		setTitle(user.username + " - Remote Admin");
+		setIconImages(AppIcons.getIcons());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 698, 436);
 		contentPane = new JPanel();

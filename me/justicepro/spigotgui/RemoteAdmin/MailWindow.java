@@ -10,6 +10,7 @@ import javax.swing.border.EmptyBorder;
 
 import me.justicepro.spigotgui.RemoteAdmin.Client.RClient;
 import me.justicepro.spigotgui.RemoteAdmin.Packets.PacketMail;
+import me.justicepro.spigotgui.Utils.AppIcons;
 
 import javax.swing.JLabel;
 import java.awt.event.ActionListener;
@@ -32,6 +33,7 @@ public class MailWindow extends JFrame {
 	 */
 	public MailWindow(RClient client) {
 		setTitle("Compose Mail - Remote Admin");
+		setIconImages(AppIcons.getIcons());
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 660, 575);

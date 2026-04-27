@@ -46,6 +46,7 @@ import me.justicepro.spigotgui.RemoteAdmin.Packets.PacketServerStart;
 import me.justicepro.spigotgui.RemoteAdmin.Packets.SendMessage;
 import me.justicepro.spigotgui.RemoteAdmin.Server.RConnection;
 import me.justicepro.spigotgui.RemoteAdmin.Server.RServer;
+import me.justicepro.spigotgui.Utils.AppIcons;
 
 public class AdminWindow extends JFrame implements PacketHandler {
 
@@ -77,6 +78,7 @@ public class AdminWindow extends JFrame implements PacketHandler {
 		client.start();
 
 		setTitle("Remote Admin - ServerGUI");
+		setIconImages(AppIcons.getIcons());
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 642, 508);

@@ -32,6 +32,7 @@ import javax.swing.event.DocumentListener;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import me.justicepro.spigotgui.Theme;
+import me.justicepro.spigotgui.Utils.AppIcons;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.RUndoManager;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -75,6 +76,7 @@ public class FileEditor extends JFrame {
 	private FindReplaceDialog findReplaceDialog;
 
 	public FileEditor() {
+		setIconImages(AppIcons.getIcons());
 		setTitle("New - File Editor");
 		setResizable(true);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -362,6 +364,7 @@ public class FileEditor extends JFrame {
 
 		FindReplaceDialog(JFrame parent, RSyntaxTextArea textArea) {
 			this.textArea = textArea;
+			setIconImages(AppIcons.getIcons());
 			setTitle("Find and Replace");
 			setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 			setResizable(false);

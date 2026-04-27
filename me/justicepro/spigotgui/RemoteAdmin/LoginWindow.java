@@ -3,6 +3,7 @@ package me.justicepro.spigotgui.RemoteAdmin;
 import java.io.IOException;
 
 import javax.swing.JFrame;
+import me.justicepro.spigotgui.Utils.AppIcons;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
@@ -41,6 +42,7 @@ public class LoginWindow extends JFrame {
 		}
 		
 		setTitle("Login - Remote Admin");
+		setIconImages(AppIcons.getIcons());
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 517, 221);

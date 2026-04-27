@@ -79,6 +79,7 @@ import me.justicepro.spigotgui.RemoteAdmin.CorePermissions;
 import me.justicepro.spigotgui.RemoteAdmin.Permission;
 import me.justicepro.spigotgui.RemoteAdmin.PacketHandlers.ServerHandler;
 import me.justicepro.spigotgui.RemoteAdmin.Server.RServer;
+import me.justicepro.spigotgui.Utils.AppIcons;
 import me.justicepro.spigotgui.Utils.ConsoleStyleHelper;
 import me.justicepro.spigotgui.Utils.Dialogs;
 import me.justicepro.spigotgui.Utils.Player;
@@ -230,7 +231,7 @@ public class SpigotGUI extends JFrame {
 		if (initialThemeForSession == null) {
 			initialThemeForSession = settings.getTheme();
 		}
-		//setIconImage(ImageIO.read(getClass().getResourceAsStream("/spigotgui.png")));
+		setIconImages(AppIcons.getIcons());
 		setTitle("ServerGUI (" + versionTag + ")");
 		module = new ModuleCore();
 		module.init();

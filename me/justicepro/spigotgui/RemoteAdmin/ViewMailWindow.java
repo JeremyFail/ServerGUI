@@ -1,6 +1,7 @@
 package me.justicepro.spigotgui.RemoteAdmin;
 
 import javax.swing.JFrame;
+import me.justicepro.spigotgui.Utils.AppIcons;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -20,6 +21,7 @@ public class ViewMailWindow extends JFrame {
 	 */
 	public ViewMailWindow(String subject, String body) {
 		setTitle("View Mail - Remote Admin");
+		setIconImages(AppIcons.getIcons());
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 660, 575);

@@ -16,6 +16,7 @@ import javax.swing.event.ListSelectionListener;
 
 import me.justicepro.spigotgui.Module;
 import me.justicepro.spigotgui.ModuleManager;
+import me.justicepro.spigotgui.Utils.AppIcons;
 
 import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
@@ -29,6 +30,7 @@ public class InstructionWindow extends JFrame {
 	 * @throws Exception 
 	 */
 	public InstructionWindow() throws Exception {
+		setIconImages(AppIcons.getIcons());
 		setTitle("Instruction Manual - ServerGUI");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 643, 631);

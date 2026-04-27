@@ -33,6 +33,8 @@ import javax.swing.JMenuItem;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.event.PopupMenuEvent;
 
+import me.justicepro.spigotgui.Utils.AppIcons;
+
 public class ServerWindow extends JFrame {
 
 	private JPanel contentPane;
@@ -48,6 +50,7 @@ public class ServerWindow extends JFrame {
 	public ServerWindow() {
 		this.server = new RServer();
 		setTitle("Server - Remote Admin");
+		setIconImages(AppIcons.getIcons());
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 642, 508);
