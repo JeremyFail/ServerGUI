@@ -9,182 +9,128 @@ public class Settings implements Serializable {
 	/** Pin UID so old settings files still deserialize. */
 	private static final long serialVersionUID = -2270671006336242076L;
 
+	// Fields kept as Object/named exactly as before so legacy binary deserialization still works.
 	private ServerSettings serverSettings;
 	private Theme theme;
-	private Object fontSize;
-	/** Console dark mode (dark background); if false, light background. Persisted like theme. Default off (light). */
+	private Object fontSize; // Object for legacy binary compat; always Integer in practice
 	private boolean consoleDarkMode = false;
-	/** Console colors enabled; if false, display all text in default fg (black/white). Persisted like theme. */
 	private boolean consoleColorsEnabled = true;
-	/** When true, double-clicking a file in the Files tab opens it in the system default app instead of the built-in editor. */
 	private boolean openFilesInSystemDefault = false;
-	/** File editor theme name (e.g. "default", "dark", "eclipse"). Used for RSyntaxTextArea built-in themes. */
 	private String fileEditorTheme = "default";
-	/** When true, show the manual "Console scroll sticky" checkbox on the Console tab and do not auto-update sticky on scroll. */
 	private boolean manualConsoleScrollSticky = false;
-	/** When true, server control buttons (Start/Stop/Restart) show text; when false, they show icons only. */
 	private boolean serverButtonsUseText = false;
-	/** Seconds to wait before shutdown/restart when using countdown; 0 = immediate. Replaces old "exit timer" dropdown. */
 	private int shutdownCountdownSeconds = 0;
-	/** When true, console text wraps only at word boundaries (spaces); when false (default), wraps at any character. */
 	private boolean consoleWrapWordBreakOnly = false;
-	/** Accent color (RGB, e.g. 0x0096E6). Used by FlatLaf and for icon tint (e.g. refresh). Default blue. */
 	private int accentColorRgb = 0x0096E6;
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize) {
-		this.serverSettings = serverSettings;
-		this.theme = theme;
-		this.fontSize = fontSize;
+	private Settings(Builder b) {
+		this.serverSettings            = b.serverSettings;
+		this.theme                     = b.theme;
+		this.fontSize                  = b.fontSize;
+		this.consoleDarkMode           = b.consoleDarkMode;
+		this.consoleColorsEnabled      = b.consoleColorsEnabled;
+		this.openFilesInSystemDefault  = b.openFilesInSystemDefault;
+		this.fileEditorTheme           = b.fileEditorTheme;
+		this.manualConsoleScrollSticky = b.manualConsoleScrollSticky;
+		this.serverButtonsUseText      = b.serverButtonsUseText;
+		this.shutdownCountdownSeconds  = b.shutdownCountdownSeconds;
+		this.consoleWrapWordBreakOnly  = b.consoleWrapWordBreakOnly;
+		this.accentColorRgb            = b.accentColorRgb;
 	}
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode) {
-		this.serverSettings = serverSettings;
-		this.theme = theme;
-		this.fontSize = fontSize;
-		this.consoleDarkMode = consoleDarkMode;
+	/**
+	 * Returns a builder pre-populated with every value from this instance.
+	 * Use it to create a modified copy without touching unrelated fields:
+	 * <pre>Settings updated = settings.toBuilder().theme(newTheme).build();</pre>
+	 */
+	public Builder toBuilder() {
+		return new Builder()
+				.serverSettings(serverSettings)
+				.theme(theme)
+				.fontSize(getFontSize())
+				.consoleDarkMode(consoleDarkMode)
+				.consoleColorsEnabled(consoleColorsEnabled)
+				.openFilesInSystemDefault(openFilesInSystemDefault)
+				.fileEditorTheme(fileEditorTheme)
+				.manualConsoleScrollSticky(manualConsoleScrollSticky)
+				.serverButtonsUseText(serverButtonsUseText)
+				.shutdownCountdownSeconds(shutdownCountdownSeconds)
+				.consoleWrapWordBreakOnly(consoleWrapWordBreakOnly)
+				.accentColorRgb(accentColorRgb);
 	}
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled) {
-		this.serverSettings = serverSettings;
-		this.theme = theme;
-		this.fontSize = fontSize;
-		this.consoleDarkMode = consoleDarkMode;
-		this.consoleColorsEnabled = consoleColorsEnabled;
+	/**
+	 * Builder for {@link Settings}. All fields default to the same values the app
+	 * uses for a fresh install, so only the fields being changed need to be set.
+	 */
+	public static final class Builder {
+		private ServerSettings serverSettings            = ServerSettings.getDefault();
+		private Theme          theme                     = Theme.getDefaultForPlatform();
+		private int            fontSize                  = 13;
+		private boolean        consoleDarkMode           = false;
+		private boolean        consoleColorsEnabled      = true;
+		private boolean        openFilesInSystemDefault  = false;
+		private String         fileEditorTheme           = "default";
+		private boolean        manualConsoleScrollSticky = false;
+		private boolean        serverButtonsUseText      = false;
+		private int            shutdownCountdownSeconds  = 0;
+		private boolean        consoleWrapWordBreakOnly  = false;
+		private int            accentColorRgb            = 0x0096E6;
+
+		public Builder serverSettings(ServerSettings v)      { serverSettings = v != null ? v : ServerSettings.getDefault(); return this; }
+		public Builder theme(Theme v)                        { theme = v != null ? v : Theme.getDefaultForPlatform(); return this; }
+		public Builder fontSize(int v)                       { fontSize = v > 0 ? v : 13; return this; }
+		public Builder consoleDarkMode(boolean v)            { consoleDarkMode = v; return this; }
+		public Builder consoleColorsEnabled(boolean v)       { consoleColorsEnabled = v; return this; }
+		public Builder openFilesInSystemDefault(boolean v)   { openFilesInSystemDefault = v; return this; }
+		public Builder fileEditorTheme(String v)             { fileEditorTheme = v != null && !v.isEmpty() ? v : "default"; return this; }
+		public Builder manualConsoleScrollSticky(boolean v)  { manualConsoleScrollSticky = v; return this; }
+		public Builder serverButtonsUseText(boolean v)       { serverButtonsUseText = v; return this; }
+		public Builder shutdownCountdownSeconds(int v)       { shutdownCountdownSeconds = Math.max(0, v); return this; }
+		public Builder consoleWrapWordBreakOnly(boolean v)   { consoleWrapWordBreakOnly = v; return this; }
+		public Builder accentColorRgb(int v)                 { accentColorRgb = v != 0 ? v : 0x0096E6; return this; }
+
+		public Settings build() { return new Settings(this); }
 	}
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled, boolean openFilesInSystemDefault) {
-		this.serverSettings = serverSettings;
-		this.theme = theme;
-		this.fontSize = fontSize;
-		this.consoleDarkMode = consoleDarkMode;
-		this.consoleColorsEnabled = consoleColorsEnabled;
-		this.openFilesInSystemDefault = openFilesInSystemDefault;
-	}
+	// --- Getters and setters ---
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled, boolean openFilesInSystemDefault, String fileEditorTheme) {
-		this(serverSettings, theme, fontSize, consoleDarkMode, consoleColorsEnabled, openFilesInSystemDefault, fileEditorTheme, false);
-	}
+	public ServerSettings getServerSettings() { return serverSettings; }
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled, boolean openFilesInSystemDefault, String fileEditorTheme, boolean manualConsoleScrollSticky) {
-		this(serverSettings, theme, fontSize, consoleDarkMode, consoleColorsEnabled, openFilesInSystemDefault, fileEditorTheme, manualConsoleScrollSticky, false);
-	}
+	/** Font size in points. The backing field is {@code Object} for legacy binary compat; always an integer in practice. */
+	public int getFontSize() { return fontSize instanceof Number ? ((Number) fontSize).intValue() : 13; }
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled, boolean openFilesInSystemDefault, String fileEditorTheme, boolean manualConsoleScrollSticky, boolean serverButtonsUseText) {
-		this(serverSettings, theme, fontSize, consoleDarkMode, consoleColorsEnabled, openFilesInSystemDefault, fileEditorTheme, manualConsoleScrollSticky, serverButtonsUseText, 0);
-	}
+	public Theme getTheme() { return theme; }
+	public void setTheme(Theme theme) { this.theme = theme; }
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled, boolean openFilesInSystemDefault, String fileEditorTheme, boolean manualConsoleScrollSticky, boolean serverButtonsUseText, int shutdownCountdownSeconds) {
-		this(serverSettings, theme, fontSize, consoleDarkMode, consoleColorsEnabled, openFilesInSystemDefault, fileEditorTheme, manualConsoleScrollSticky, serverButtonsUseText, shutdownCountdownSeconds, false);
-	}
+	public boolean isConsoleDarkMode() { return consoleDarkMode; }
+	public void setConsoleDarkMode(boolean consoleDarkMode) { this.consoleDarkMode = consoleDarkMode; }
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled, boolean openFilesInSystemDefault, String fileEditorTheme, boolean manualConsoleScrollSticky, boolean serverButtonsUseText, int shutdownCountdownSeconds, boolean consoleWrapWordBreakOnly) {
-		this(serverSettings, theme, fontSize, consoleDarkMode, consoleColorsEnabled, openFilesInSystemDefault, fileEditorTheme, manualConsoleScrollSticky, serverButtonsUseText, shutdownCountdownSeconds, consoleWrapWordBreakOnly, 0x0096E6);
-	}
+	public boolean isConsoleColorsEnabled() { return consoleColorsEnabled; }
+	public void setConsoleColorsEnabled(boolean consoleColorsEnabled) { this.consoleColorsEnabled = consoleColorsEnabled; }
 
-	public Settings(ServerSettings serverSettings, Theme theme, Object fontSize, boolean consoleDarkMode, boolean consoleColorsEnabled, boolean openFilesInSystemDefault, String fileEditorTheme, boolean manualConsoleScrollSticky, boolean serverButtonsUseText, int shutdownCountdownSeconds, boolean consoleWrapWordBreakOnly, int accentColorRgb) {
-		this.serverSettings = serverSettings;
-		this.theme = theme;
-		this.fontSize = fontSize;
-		this.consoleDarkMode = consoleDarkMode;
-		this.consoleColorsEnabled = consoleColorsEnabled;
-		this.openFilesInSystemDefault = openFilesInSystemDefault;
-		this.fileEditorTheme = fileEditorTheme != null ? fileEditorTheme : "default";
-		this.manualConsoleScrollSticky = manualConsoleScrollSticky;
-		this.serverButtonsUseText = serverButtonsUseText;
-		this.shutdownCountdownSeconds = Math.max(0, shutdownCountdownSeconds);
-		this.consoleWrapWordBreakOnly = consoleWrapWordBreakOnly;
-		this.accentColorRgb = accentColorRgb != 0 ? accentColorRgb : 0x0096E6;
-	}
+	public boolean isOpenFilesInSystemDefault() { return openFilesInSystemDefault; }
+	public void setOpenFilesInSystemDefault(boolean openFilesInSystemDefault) { this.openFilesInSystemDefault = openFilesInSystemDefault; }
 
-	public ServerSettings getServerSettings() {
-		return serverSettings;
-	}
-	
-	public Object getFontSize() {
-		return fontSize;
-	}
-	
-	public Theme getTheme() {
-		return theme;
-	}
+	public String getFileEditorTheme() { return (fileEditorTheme != null && !fileEditorTheme.isEmpty()) ? fileEditorTheme : "default"; }
+	public void setFileEditorTheme(String fileEditorTheme) { this.fileEditorTheme = fileEditorTheme != null ? fileEditorTheme : "default"; }
 
-	public void setTheme(Theme theme) {
-		this.theme = theme;
-	}
+	public boolean isManualConsoleScrollSticky() { return manualConsoleScrollSticky; }
+	public void setManualConsoleScrollSticky(boolean manualConsoleScrollSticky) { this.manualConsoleScrollSticky = manualConsoleScrollSticky; }
 
-	public boolean isConsoleDarkMode() {
-		return consoleDarkMode;
-	}
+	public boolean isServerButtonsUseText() { return serverButtonsUseText; }
+	public void setServerButtonsUseText(boolean serverButtonsUseText) { this.serverButtonsUseText = serverButtonsUseText; }
 
-	public void setConsoleDarkMode(boolean consoleDarkMode) {
-		this.consoleDarkMode = consoleDarkMode;
-	}
+	public int getShutdownCountdownSeconds() { return shutdownCountdownSeconds; }
+	public void setShutdownCountdownSeconds(int shutdownCountdownSeconds) { this.shutdownCountdownSeconds = Math.max(0, shutdownCountdownSeconds); }
 
-	public boolean isConsoleColorsEnabled() {
-		return consoleColorsEnabled;
-	}
+	public boolean isConsoleWrapWordBreakOnly() { return consoleWrapWordBreakOnly; }
+	public void setConsoleWrapWordBreakOnly(boolean consoleWrapWordBreakOnly) { this.consoleWrapWordBreakOnly = consoleWrapWordBreakOnly; }
 
-	public void setConsoleColorsEnabled(boolean consoleColorsEnabled) {
-		this.consoleColorsEnabled = consoleColorsEnabled;
-	}
+	public int getAccentColorRgb() { return accentColorRgb != 0 ? accentColorRgb : 0x0096E6; }
+	public void setAccentColorRgb(int accentColorRgb) { this.accentColorRgb = accentColorRgb != 0 ? accentColorRgb : 0x0096E6; }
 
-	public boolean isOpenFilesInSystemDefault() {
-		return openFilesInSystemDefault;
-	}
-
-	public void setOpenFilesInSystemDefault(boolean openFilesInSystemDefault) {
-		this.openFilesInSystemDefault = openFilesInSystemDefault;
-	}
-
-	public String getFileEditorTheme() {
-		return (fileEditorTheme != null && !fileEditorTheme.isEmpty()) ? fileEditorTheme : "default";
-	}
-
-	public void setFileEditorTheme(String fileEditorTheme) {
-		this.fileEditorTheme = fileEditorTheme != null ? fileEditorTheme : "default";
-	}
-
-	public boolean isManualConsoleScrollSticky() {
-		return manualConsoleScrollSticky;
-	}
-
-	public void setManualConsoleScrollSticky(boolean manualConsoleScrollSticky) {
-		this.manualConsoleScrollSticky = manualConsoleScrollSticky;
-	}
-
-	public boolean isServerButtonsUseText() {
-		return serverButtonsUseText;
-	}
-
-	public void setServerButtonsUseText(boolean serverButtonsUseText) {
-		this.serverButtonsUseText = serverButtonsUseText;
-	}
-
-	public int getShutdownCountdownSeconds() {
-		return shutdownCountdownSeconds;
-	}
-
-	public void setShutdownCountdownSeconds(int shutdownCountdownSeconds) {
-		this.shutdownCountdownSeconds = Math.max(0, shutdownCountdownSeconds);
-	}
-
-	public boolean isConsoleWrapWordBreakOnly() {
-		return consoleWrapWordBreakOnly;
-	}
-
-	public void setConsoleWrapWordBreakOnly(boolean consoleWrapWordBreakOnly) {
-		this.consoleWrapWordBreakOnly = consoleWrapWordBreakOnly;
-	}
-
-	public int getAccentColorRgb() {
-		return accentColorRgb != 0 ? accentColorRgb : 0x0096E6;
-	}
-
-	public void setAccentColorRgb(int accentColorRgb) {
-		this.accentColorRgb = accentColorRgb != 0 ? accentColorRgb : 0x0096E6;
-	}
-
-	/** Backward compatibility: Normalize after deserialization for old settings files that are missing some fields. */
+	/** Normalize fields that may be absent or invalid in old binary-serialized files. */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 		if (shutdownCountdownSeconds < 0) shutdownCountdownSeconds = 0;

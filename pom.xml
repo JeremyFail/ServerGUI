@@ -50,6 +50,12 @@
             <artifactId>oshi-core</artifactId>
             <version>6.4.10</version>
         </dependency>
+        <!-- mJson: minimal JSON library for human-friendly, upgrade-tolerant settings persistence -->
+        <dependency>
+            <groupId>org.sharegov</groupId>
+            <artifactId>mjson</artifactId>
+            <version>1.4.0</version>
+        </dependency>
     </dependencies>
 
     <build>

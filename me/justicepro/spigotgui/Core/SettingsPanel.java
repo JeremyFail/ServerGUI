@@ -582,26 +582,26 @@ public class SettingsPanel extends JPanel {
 
 	/** Builds a Settings instance from current UI values; used when saving on close or Apply. */
 	public Settings buildSettingsFromUI(File jarFile) {
-		return new Settings(
-			new ServerSettings(
+		return new Settings.Builder()
+			.serverSettings(new ServerSettings(
 				((Number) minRam.getValue()).intValue(),
 				((Number) maxRam.getValue()).intValue(),
 				customJvmArgsField.getText(),
 				customJvmSwitchesField.getText(),
 				jarFile,
 				getCustomJvmPath()
-			),
-			getSelectedTheme(),
-			fontSpinner.getValue(),
-			consoleDarkModeCheckBox.isSelected(),
-			!disableConsoleColorsCheckBox.isSelected(),
-			openFilesInSystemDefaultCheckBox.isSelected(),
-			settings.getFileEditorTheme(),
-			manualConsoleScrollStickyCheckBox.isSelected(),
-			serverButtonsUseTextCheckBox.isSelected(),
-			getShutdownCountdownSeconds(),
-			consoleWrapWordBreakOnlyCheckBox.isSelected(),
-			getAccentColorRgbFromUI()
-		);
+			))
+			.theme(getSelectedTheme())
+			.fontSize(((Number) fontSpinner.getValue()).intValue())
+			.consoleDarkMode(consoleDarkModeCheckBox.isSelected())
+			.consoleColorsEnabled(!disableConsoleColorsCheckBox.isSelected())
+			.openFilesInSystemDefault(openFilesInSystemDefaultCheckBox.isSelected())
+			.fileEditorTheme(settings.getFileEditorTheme())
+			.manualConsoleScrollSticky(manualConsoleScrollStickyCheckBox.isSelected())
+			.serverButtonsUseText(serverButtonsUseTextCheckBox.isSelected())
+			.shutdownCountdownSeconds(getShutdownCountdownSeconds())
+			.consoleWrapWordBreakOnly(consoleWrapWordBreakOnlyCheckBox.isSelected())
+			.accentColorRgb(getAccentColorRgbFromUI())
+			.build();
 	}
 }

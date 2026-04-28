@@ -24,11 +24,7 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Inet4Address;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -66,6 +62,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import me.justicepro.spigotgui.JModulePanel;
+import me.justicepro.spigotgui.SettingsIO;
 import me.justicepro.spigotgui.Module;
 import me.justicepro.spigotgui.ModuleManager;
 import me.justicepro.spigotgui.ProcessException;
@@ -189,18 +186,12 @@ public class SpigotGUI extends JFrame {
 						theme = Theme.getFallbackTheme();
 						UIManager.setLookAndFeel(theme.getLookAndFeel());
 						if (theme != settings.getTheme()) {
-							settings = new Settings(settings.getServerSettings(), theme, settings.getFontSize(),
-									settings.isConsoleDarkMode(), settings.isConsoleColorsEnabled(), settings.isOpenFilesInSystemDefault(),
-									settings.getFileEditorTheme(), settings.isManualConsoleScrollSticky(), settings.isServerButtonsUseText(),
-									settings.getShutdownCountdownSeconds(), settings.isConsoleWrapWordBreakOnly(), settings.getAccentColorRgb());
+							settings = settings.toBuilder().theme(theme).build();
 							try { saveSettings(settings); } catch (IOException e) { }
 						}
 					}
 					if (theme != settings.getTheme()) {
-						settings = new Settings(settings.getServerSettings(), theme, settings.getFontSize(),
-								settings.isConsoleDarkMode(), settings.isConsoleColorsEnabled(), settings.isOpenFilesInSystemDefault(),
-								settings.getFileEditorTheme(), settings.isManualConsoleScrollSticky(), settings.isServerButtonsUseText(),
-								settings.getShutdownCountdownSeconds(), settings.isConsoleWrapWordBreakOnly(), settings.getAccentColorRgb());
+						settings = settings.toBuilder().theme(theme).build();
 						try { saveSettings(settings); } catch (IOException e) { }
 					}
 					instance = new SpigotGUI(settings);
@@ -286,7 +277,7 @@ public class SpigotGUI extends JFrame {
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 
 		// --- Console tab: built by ConsolePanel; we keep refs for addToConsole and Settings ---
-		int fontSize = (int) settings.getFontSize();
+		int fontSize = settings.getFontSize();
 		Font consoleFont = getConsoleMonospaceFont(fontSize);
 		ConsolePanel consolePanel = new ConsolePanel(this, consoleFont, settings.isConsoleDarkMode(),
 				settings.isConsoleColorsEnabled(), settings.isConsoleWrapWordBreakOnly(),
@@ -477,83 +468,11 @@ public class SpigotGUI extends JFrame {
 	}
 
 	public static void saveSettings(Settings settings) throws IOException {
-		ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(new File("servergui.settings")));
-		output.writeObject(settings);
-		output.flush();
-		output.close();
+		SettingsIO.save(settings);
 	}
 
-	public static Settings loadSettings() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
-		File file = new File("servergui.settings");
-		File backupFile = new File("servergui.settings.old");
-
-		if (!file.exists()) {
-			// No main file - try backup (e.g. from a previous failed load)
-			if (backupFile.exists()) {
-				Settings fromBackup = tryLoadSettingsFrom(backupFile);
-				if (fromBackup != null) {
-					Theme resolved = Theme.resolveForCurrentPlatform(fromBackup.getTheme());
-					if (resolved != fromBackup.getTheme()) {
-						fromBackup = new Settings(fromBackup.getServerSettings(), resolved, fromBackup.getFontSize(),
-								fromBackup.isConsoleDarkMode(), fromBackup.isConsoleColorsEnabled(), fromBackup.isOpenFilesInSystemDefault(),
-								fromBackup.getFileEditorTheme(), fromBackup.isManualConsoleScrollSticky(), fromBackup.isServerButtonsUseText(),
-								fromBackup.getShutdownCountdownSeconds(), fromBackup.isConsoleWrapWordBreakOnly(), fromBackup.getAccentColorRgb());
-					}
-					saveSettings(fromBackup); // migrate to new format on main file
-					return fromBackup;
-				}
-			}
-			Theme defaultTheme = Theme.getDefaultForPlatform();
-			Settings defaults = new Settings(ServerSettings.getDefault(), defaultTheme, 13, false, true, false, "default");
-			saveSettings(defaults);
-			return defaults;
-		}
-
-		// Try main file first
-		Settings settings = tryLoadSettingsFrom(file);
-		if (settings != null) {
-			Theme resolved = Theme.resolveForCurrentPlatform(settings.getTheme());
-			if (resolved != settings.getTheme()) {
-				settings = new Settings(settings.getServerSettings(), resolved, settings.getFontSize(),
-						settings.isConsoleDarkMode(), settings.isConsoleColorsEnabled(), settings.isOpenFilesInSystemDefault(),
-						settings.getFileEditorTheme(), settings.isManualConsoleScrollSticky(), settings.isServerButtonsUseText(),
-						settings.getShutdownCountdownSeconds(), settings.isConsoleWrapWordBreakOnly(), settings.getAccentColorRgb());
-				try { saveSettings(settings); } catch (IOException e) { /* persist fallback theme */ }
-			}
-			return settings;
-		}
-
-		// Main file failed (e.g. old/incompatible format) - try backup if it exists
-		if (backupFile.exists()) {
-			settings = tryLoadSettingsFrom(backupFile);
-			if (settings != null) {
-				Theme resolved = Theme.resolveForCurrentPlatform(settings.getTheme());
-				if (resolved != settings.getTheme()) {
-					settings = new Settings(settings.getServerSettings(), resolved, settings.getFontSize(),
-							settings.isConsoleDarkMode(), settings.isConsoleColorsEnabled(), settings.isOpenFilesInSystemDefault(),
-							settings.getFileEditorTheme(), settings.isManualConsoleScrollSticky(), settings.isServerButtonsUseText(),
-							settings.getShutdownCountdownSeconds(), settings.isConsoleWrapWordBreakOnly(), settings.getAccentColorRgb());
-				}
-				saveSettings(settings); // migrate to new format on main file
-				return settings;
-			}
-		}
-
-		// Both failed - backup main file so we don't lose it, then use defaults
-		file.renameTo(backupFile);
-		Theme defaultTheme = Theme.getDefaultForPlatform();
-		Settings defaults = new Settings(ServerSettings.getDefault(), defaultTheme, 13, false, true, false, "default");
-		saveSettings(defaults);
-		return defaults;
-	}
-
-	/** Try to deserialize Settings from a file; returns null on any error. */
-	private static Settings tryLoadSettingsFrom(File file) {
-		try (ObjectInputStream input = new ObjectInputStream(new FileInputStream(file))) {
-			return (Settings) input.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-			return null;
-		}
+	public static Settings loadSettings() throws IOException {
+		return SettingsIO.load();
 	}
 
 	/** Add nodes from under "dir" into curTop. Highly recursive. */
