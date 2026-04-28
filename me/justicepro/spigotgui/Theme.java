@@ -192,10 +192,11 @@ public enum Theme {
 	}
 
 	/** 
-	 * True for the 6 core FlatLaf themes and several others that honor @accentColor.
-	 * False for most IntelliJ pack and system themes (they use their own colors).
+	 * Whether the selected theme honors the accent color rather than ignoring it or using hard-coded colors.
 	 * 
-	 * Some themes honor the accent color in some areas but not others - they are not included here.
+	 * Some themes honor the accent color in some areas but not others - they are not included here. See {@link #partiallyHonorsAccentColor()}.
+	 * 
+	 * @return true if the theme fully honors the accent color, false if it partially honors it or ignores it entirely
 	 */
 	public boolean honorsAccentColor() {
 		return this == FlatLight || this == FlatDark || 
@@ -203,6 +204,16 @@ public enum Theme {
 				this == FlatMacLight || this == FlatMacDark ||
 				this == Cobalt2 || this == DarkFlat ||
 				this == GruvboxDarkHard;
+	}
+
+	/**
+	 * Whether the selected theme partially honors the accent color (some areas 
+	 * use the accent color, but others use hard-coded colors from the theme).
+	 * 
+	 * @return true if the theme partially honors the accent color, false if it fully honors it or ignores it entirely
+	 */
+	public boolean partiallyHonorsAccentColor() {
+		return this == Gray || this == LightFlat || this == XcodeDark;
 	}
 
 	public ThemeFamily getFamily() {

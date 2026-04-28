@@ -1038,20 +1038,21 @@ public class SpigotGUI extends JFrame {
 	public void updateThemeLabelFor(Theme selectedTheme, JLabel lblTheme) {
 		if (lblTheme == null) return;
 		boolean sameFamily = initialThemeForSession != null && initialThemeForSession.getFamily() == selectedTheme.getFamily();
+		Color fgColor = UIManager.getColor("Label.foreground");
+		int minW = lblTheme.getFontMetrics(lblTheme.getFont()).stringWidth("Theme (may require restart)") + 8;
 		if (sameFamily) {
 			lblTheme.setText("Theme (may require restart)");
-			lblTheme.setForeground(null);
+			lblTheme.setForeground(fgColor);
 			if (themeLabelWidth <= 0) {
 				int w = lblTheme.getPreferredSize().width;
-				int minW = lblTheme.getFontMetrics(lblTheme.getFont()).stringWidth("Theme (may require restart)") + 8;
 				themeLabelWidth = Math.max(w, minW);
 				themeLabelHeight = lblTheme.getPreferredSize().height;
 			}
 		} else {
-			lblTheme.setText("<html>Theme <font color='red'>(restart required)</font></html>");
+			String hex = fgColor != null ? String.format("#%02x%02x%02x", fgColor.getRed(), fgColor.getGreen(), fgColor.getBlue()) : "inherit";
+			lblTheme.setText("<html><span style='color: " + hex + "'>Theme </span><span style='color: red'>(restart required)</span></html>");
 			if (themeLabelWidth <= 0) {
 				int w = lblTheme.getPreferredSize().width;
-				int minW = lblTheme.getFontMetrics(lblTheme.getFont()).stringWidth("Theme (may require restart)") + 8;
 				themeLabelWidth = Math.max(w, minW);
 				themeLabelHeight = lblTheme.getPreferredSize().height;
 			}

@@ -67,6 +67,8 @@ public class SettingsPanel extends JPanel {
 	private JSpinner shutdownCountdownSpinner;
 	private AccentColorPanel accentColorPanel;
 	private JLabel accentThemeControlledLabel;
+	private JPanel lblAccentWrap;
+	private JPanel accentRow;
 	private JTextField serverFileField;
 	private JTextField customJvmPathField;
 
@@ -415,7 +417,7 @@ public class SettingsPanel extends JPanel {
 		JLabel lblAccentColor = new JLabel("Theme accent color");
 		lblAccentColor.setVerticalAlignment(SwingConstants.CENTER);
 		lblAccentColor.setToolTipText("<html>Accent color used for: highlighted buttons and controls in themes, the<br>Restart button icon, and focus indicators. Some themes use their own colors.</html>");
-		JPanel lblAccentWrap = new JPanel(new BorderLayout(0, 0)) {
+		lblAccentWrap = new JPanel(new BorderLayout(0, 0)) {
 			@Override public int getBaseline(int w, int h) { return -1; }
 			@Override public Component.BaselineResizeBehavior getBaselineResizeBehavior() { return Component.BaselineResizeBehavior.OTHER; }
 		};
@@ -423,12 +425,12 @@ public class SettingsPanel extends JPanel {
 		accentColorPanel = new AccentColorPanel(settings.getAccentColorRgb());
 		accentColorPanel.setToolTipText(lblAccentColor.getToolTipText());
 		accentColorPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
-		accentThemeControlledLabel = new JLabel("(theme controlled)");
+		accentThemeControlledLabel = new JLabel("(partially theme-controlled)");
 		accentThemeControlledLabel.setVerticalAlignment(SwingConstants.CENTER);
 		accentThemeControlledLabel.setForeground(java.awt.Color.GRAY);
-		accentThemeControlledLabel.setToolTipText("The selected theme uses its own colors; accent is not fully applied to the theme (some icons and controls may still use the accent color).");
+		accentThemeControlledLabel.setToolTipText("The selected theme uses custom colors; accent is not fully applied to the theme (some icons and controls may still use the accent color).");
 		accentColorPanel.setAccentChangeListener(() -> gui.applyAccentColorLive());
-		JPanel accentRow = new JPanel() {
+		accentRow = new JPanel() {
 			@Override public int getBaseline(int w, int h) { return -1; }
 			@Override public Component.BaselineResizeBehavior getBaselineResizeBehavior() { return Component.BaselineResizeBehavior.OTHER; }
 		};
@@ -528,9 +530,20 @@ public class SettingsPanel extends JPanel {
 
 	void updateAccentPanelForTheme(Theme theme) {
 		if (accentColorPanel == null || accentThemeControlledLabel == null) return;
-		boolean honors = theme != null && theme.honorsAccentColor();
-		accentColorPanel.setEnabled(honors);
-		accentThemeControlledLabel.setVisible(!honors);
+
+		if (theme != null && theme.honorsAccentColor()) {
+			lblAccentWrap.setVisible(true);
+			accentRow.setVisible(true);
+			accentThemeControlledLabel.setVisible(false);
+		} else if (theme != null && theme.partiallyHonorsAccentColor()) {
+			lblAccentWrap.setVisible(true);
+			accentRow.setVisible(true);
+			accentThemeControlledLabel.setVisible(true);
+		} else {
+			lblAccentWrap.setVisible(false);
+			accentRow.setVisible(false);
+			accentThemeControlledLabel.setVisible(false);
+		}
 	}
 
 	// --- Getters for SpigotGUI (save, start server, apply accent) ---
