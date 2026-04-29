@@ -1,5 +1,7 @@
 package me.justicepro.spigotgui;
 
+import me.justicepro.spigotgui.Core.SpigotGUI;
+import me.justicepro.spigotgui.Utils.ConsoleColor;
 import mjson.Json;
 
 import java.io.File;
@@ -64,6 +66,7 @@ public class SettingsIO {
             if (s != null) return s;
             // File exists but is corrupt — start fresh and overwrite
             System.err.println("[ServerGUI] servergui.settings.json could not be parsed; using defaults.");
+            SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.RED + "servergui.settings.json could not be parsed; using defaults." + ConsoleColor.RESET);
             Settings defaults = defaultSettings();
             save(defaults);
             return defaults;
@@ -74,15 +77,19 @@ public class SettingsIO {
             File legacy = new File(name);
             if (!legacy.exists()) continue;
             Settings migrated = tryLoadLegacy(legacy);
-            if (migrated != null) {
-                Theme resolved = Theme.resolveForCurrentPlatform(migrated.getTheme());
-                if (resolved != migrated.getTheme()) {
-                    migrated = migrated.toBuilder().theme(resolved).build();
-                }
-                save(migrated);
-                legacy.delete();
-                return migrated;
+            if (migrated == null) {
+                System.err.println("[ServerGUI] Failed to migrate legacy settings from \"" + name + "\". Using defaults and generating new settings file.");
+                SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.RED + "Failed to migrate legacy settings from \"" + name + "\". Using defaults and generating new settings file." + ConsoleColor.RESET);
+                continue;
             }
+            Theme resolved = Theme.resolveForCurrentPlatform(migrated.getTheme());
+            if (resolved != migrated.getTheme()) {
+                migrated = migrated.toBuilder().theme(resolved).build();
+            }
+            save(migrated);
+            legacy.delete();
+            SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.GREEN + "Migrated settings from \"" + name + "\" to " + JSON_FILE + ".");
+            return migrated;
         }
 
         // Nothing found — write and return factory defaults
