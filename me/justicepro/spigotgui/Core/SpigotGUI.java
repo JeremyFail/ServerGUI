@@ -77,6 +77,7 @@ import me.justicepro.spigotgui.RemoteAdmin.Permission;
 import me.justicepro.spigotgui.RemoteAdmin.PacketHandlers.ServerHandler;
 import me.justicepro.spigotgui.RemoteAdmin.Server.RServer;
 import me.justicepro.spigotgui.Utils.AppIcons;
+import me.justicepro.spigotgui.Utils.ConsoleColor;
 import me.justicepro.spigotgui.Utils.ConsoleStyleHelper;
 import me.justicepro.spigotgui.Utils.Dialogs;
 import me.justicepro.spigotgui.Utils.Player;
@@ -151,10 +152,8 @@ public class SpigotGUI extends JFrame {
 	public static final String versionTag = getVersionTag();
 
 	// TODO: Refactor to a helper class?
-	/** ANSI escape codes for console colors. */
-	public static final String green = "\u001B[32m";
-	public static final String red = "\u001B[31m";
-	public static final String reset = "\u001B[0m";
+	/** Messages logged before the console is ready (e.g. from SettingsIO); flushed at end of constructor. */
+	private static final java.util.List<String> pendingStartupMessages = new java.util.ArrayList<>();
 
 	/** 
 	 * Get the version tag from the pom.xml file.
@@ -171,6 +170,12 @@ public class SpigotGUI extends JFrame {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
+		// Global handler: any thread that throws an uncaught exception gets its stack
+		// trace printed to the GUI console (and to stderr as a fallback).
+		Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+			logThrowable("Uncaught exception in thread \"" + thread.getName() + "\"", throwable);
+		});
+
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -437,6 +442,16 @@ public class SpigotGUI extends JFrame {
 
 		}
 
+		// Flush any messages buffered before the console was ready (e.g. from SettingsIO).
+		// Note: we call appendToConsolePane directly rather than addToConsole because
+		// `instance` is not yet assigned at this point in the constructor (the assignment
+		// `instance = new SpigotGUI(settings)` happens after the constructor returns), so
+		// addToConsole would see instance == null and silently re-buffer the messages.
+		java.util.List<String> startupMessages = new java.util.ArrayList<>(pendingStartupMessages);
+		pendingStartupMessages.clear();
+		for (String msg : startupMessages) {
+			appendToConsolePane(msg);
+		}
 
 	}
 
@@ -879,20 +894,64 @@ public class SpigotGUI extends JFrame {
 	 */
 	public static void appendJvmNormalizationWarnings(java.util.List<String> warnings) {
 		if (instance == null || warnings == null || warnings.isEmpty()) return;
-		instance.addToConsole(getPrefix() + red + "Some JVM switches in Server Settings were adjusted for this Java version:" + reset);
+		addToConsole(getPrefix() + ConsoleColor.RED + "Some JVM switches in Server Settings were adjusted for this Java version:" + ConsoleColor.RESET);
 		for (String w : warnings) {
-			instance.addToConsole(red + "  - " + w + reset);
+			addToConsole(ConsoleColor.RED + "  - " + w + ConsoleColor.RESET);
 		}
-		instance.addToConsole(red + "Update JVM switches in Server Settings to modern forms to avoid this message." + reset);
+		addToConsole(ConsoleColor.RED + "Update JVM switches in Server Settings to modern forms to avoid this message." + ConsoleColor.RESET);
+	}
+
+	/**
+	 * Logs a throwable (with full cause chain and stack traces) to both stderr and
+	 * the GUI console. Safe to call at any time — if the console isn't ready the
+	 * output is buffered and shown once the UI initialises.
+	 *
+	 * @param context  short description of what was happening (e.g. "Uncaught exception in thread \"foo\"")
+	 * @param throwable the exception to log
+	 */
+	public static void logThrowable(String context, Throwable throwable) {
+		// Always print to stderr first so nothing is lost if the GUI isn't ready.
+		System.err.println("[ServerGUI] " + context + ":");
+		throwable.printStackTrace(System.err);
+
+		// Build a multi-line string for the console, walking the full cause chain.
+		StringBuilder sb = new StringBuilder();
+		sb.append(getPrefix()).append(ConsoleColor.RED).append(context).append(':').append(ConsoleColor.RESET);
+		java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+		boolean first = true;
+		for (Throwable current = throwable; current != null && seen.add(current); current = current.getCause()) {
+			if (!first) {
+				sb.append('\n').append(ConsoleColor.RED).append("Caused by: ").append(current).append(ConsoleColor.RESET);
+			} else {
+				sb.append('\n').append(ConsoleColor.RED).append(current).append(ConsoleColor.RESET);
+				first = false;
+			}
+			for (StackTraceElement el : current.getStackTrace()) {
+				sb.append('\n').append(ConsoleColor.RED).append("    at ").append(el).append(ConsoleColor.RESET);
+			}
+		}
+		addToConsole(sb.toString());
 	}
 
 	/** Returns the prefix for the console for internal SpigotGUI messages. */
 	public static String getPrefix() {
-		return green + "[ServerGUI] " + reset;
+		return ConsoleColor.BRIGHT_CYAN + "[ServerGUI] " + ConsoleColor.RESET;
 	}
 
-	public void addToConsole(String message) {
-		if (consoleStyleHelper == null) return;
+	/**
+	 * Add a message to the GUI console. If the console isn't ready yet the message
+	 * is buffered and flushed automatically once the UI finishes initialising, so
+	 * callers do not need to worry about startup order.
+	 */
+	public static void addToConsole(String message) {
+		if (instance == null || instance.consoleStyleHelper == null) {
+			pendingStartupMessages.add(message);
+			return;
+		}
+		instance.appendToConsolePane(message);
+	}
+
+	private void appendToConsolePane(String message) {
 		// Run append and scroll on EDT so we can control whether the view scrolls at all.
 		SwingUtilities.invokeLater(() -> {
 			ignoreScrollBarUntil = System.currentTimeMillis() + 250;

@@ -104,7 +104,11 @@ public class Server {
 						String line = scanner.nextLine();
 						
 						for (Module module : ModuleManager.modules) {
-							module.onConsolePrintRaw(line);
+							try {
+								module.onConsolePrintRaw(line);
+							} catch (Exception e) {
+								SpigotGUI.logThrowable("Exception in module " + module.getClass().getSimpleName() + " while processing console output", e);
+							}
 						}
 						
 					}
