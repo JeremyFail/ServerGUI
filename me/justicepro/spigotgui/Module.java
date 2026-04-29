@@ -73,8 +73,15 @@ public class Module {
 			onServerInit();
 		}
 		
-		if (message.startsWith("This server is running CraftBukkit ")) {
-			onBukkitVersionDetected(message.split("This server is running CraftBukkit version ")[1].split(" ")[0]);
+		if (message.startsWith("This server is running CraftBukkit ") || message.startsWith("This server is running Spigot ")) {
+			String prefix = message.startsWith("This server is running CraftBukkit ") ? "This server is running CraftBukkit version " : "This server is running Spigot version ";
+			String[] versionFull = message.split(prefix);
+			String version = null;
+			if (versionFull.length > 1)
+			{
+				version = versionFull[1].split(" ")[0];
+			}
+			onBukkitVersionDetected(version);
 		}
 		
 		if (message.startsWith("[Sponge]: This server is running Sponge")) {
