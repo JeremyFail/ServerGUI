@@ -125,6 +125,7 @@ public class SpigotGUI extends JFrame {
 
 	private JButton btnStartServer;
 	private JButton btnStopServer;
+	private JButton btnKillServer;
 	private JButton btnRestartServer;
 	private JTable playersTable;
 	private JLabel lblPlayersOnlineCount;
@@ -366,6 +367,29 @@ public class SpigotGUI extends JFrame {
 			}
 		});
 
+		btnKillServer = new JButton("Kill Server");
+		btnKillServer.setEnabled(false);
+		btnKillServer.setVisible(settings.isDisplayKillButton());
+		btnKillServer.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (server != null && server.isRunning()) {
+					int confirm = JOptionPane.showConfirmDialog(
+						SpigotGUI.this,
+						"<html>Are you sure you want to forcefully kill the server?<br>"
+						+ "This will immediately terminate the server process and may cause data loss or corruption.<br>"
+						+ "<b>Only use this if the server is hung and won't stop normally.</b></html>",
+						"Kill Server - Confirm",
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.WARNING_MESSAGE);
+					if (confirm == JOptionPane.YES_OPTION) {
+						server.kill();
+					}
+				} else {
+					JOptionPane.showMessageDialog(SpigotGUI.this, "There are no servers running.");
+				}
+			}
+		});
+
 		lblServerStatusText = new JLabel("Status: Offline");
 		lblServerStatusText.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblServerStatusText.setMinimumSize(new Dimension(130, 20));
@@ -376,6 +400,7 @@ public class SpigotGUI extends JFrame {
 		JPanel topBarLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
 		topBarLeft.add(btnStartServer);
 		topBarLeft.add(btnStopServer);
+		topBarLeft.add(btnKillServer);
 		topBarLeft.add(btnRestartServer);
 		topBarLeft.add(Box.createHorizontalStrut(6));
 		topBarLeft.add(lblServerIP);
@@ -691,13 +716,13 @@ public class SpigotGUI extends JFrame {
 		updateServerButtonStates(active);
 	}
 
-	/** Enable/disable Start, Stop, Restart based on whether the server is running. */
+	/** Enable/disable Start, Stop, Kill, Restart based on whether the server is running. */
 	private void updateServerButtonStates(boolean serverRunning) {
 		Color enabledFg = UIManager.getColor("Button.foreground");
 		if (enabledFg == null) enabledFg = Color.BLACK;
 		Color disabledFg = UIManager.getColor("Button.disabledText");
 		if (disabledFg == null) disabledFg = Color.GRAY;
-		for (JButton btn : new JButton[] { btnStartServer, btnStopServer, btnRestartServer }) {
+		for (JButton btn : new JButton[] { btnStartServer, btnStopServer, btnKillServer, btnRestartServer }) {
 			if (btn == null) continue;
 			boolean enable = (btn == btnStartServer) ? !serverRunning : serverRunning;
 			btn.setEnabled(enable);
@@ -799,16 +824,19 @@ public class SpigotGUI extends JFrame {
 		if (disabledFg == null) disabledFg = Color.GRAY;
 		Color accentColor = settings != null ? new Color(0xFFFFFF & settings.getAccentColorRgb()) : new Color(0x0096E6);
 		if (useIcons) {
-			// Play/Stop: no color filter so SVG keeps its green/red; Restart: use accent
+			// Play/Stop/Warning: no color filter so SVG keeps its green/red/yellow; Restart: use accent
 			Icon playIcon = createSvgOrFallbackIcon("/svg/execute.svg", size, size, null);
 			Icon playIconDis = playIcon != null ? createSvgOrFallbackIcon("/svg/execute.svg", size, size, null) : null;
 			Icon stopIcon = createSvgOrFallbackIcon("/svg/suspend.svg", size, size, null);
 			Icon stopIconDis = stopIcon != null ? createSvgOrFallbackIcon("/svg/suspend.svg", size, size, null) : null;
+			Icon killIcon = createSvgOrFallbackIcon("/svg/warning.svg", size, size, null);
+			Icon killIconDis = killIcon != null ? createSvgOrFallbackIcon("/svg/warning.svg", size, size, null) : null;
 			Icon restartIcon = createSvgOrFallbackIcon("/svg/refresh.svg", size, size, accentColor);
 			Icon restartIconDis = restartIcon != null ? createSvgOrFallbackIcon("/svg/refresh.svg", size, size, disabledFg) : null;
 			btnStartServer.setText("");
 			Icon playDisabled = (playIcon instanceof FlatSVGIcon) ? ((FlatSVGIcon) playIcon).getDisabledIcon() : playIconDis;
 			Icon stopDisabled = (stopIcon instanceof FlatSVGIcon) ? ((FlatSVGIcon) stopIcon).getDisabledIcon() : stopIconDis;
+			Icon killDisabled = (killIcon instanceof FlatSVGIcon) ? ((FlatSVGIcon) killIcon).getDisabledIcon() : killIconDis;
 			Icon restartDisabled = (restartIcon instanceof FlatSVGIcon) ? ((FlatSVGIcon) restartIcon).getDisabledIcon() : restartIconDis;
 			btnStartServer.setIcon(playIcon != null ? playIcon : createPlayIcon(size, enabledFg));
 			btnStartServer.setDisabledIcon(playIcon != null ? (playDisabled != null ? playDisabled : createPlayIcon(size, disabledFg)) : createPlayIcon(size, disabledFg));
@@ -817,6 +845,12 @@ public class SpigotGUI extends JFrame {
 			btnStopServer.setIcon(stopIcon != null ? stopIcon : createStopIcon(size, enabledFg));
 			btnStopServer.setDisabledIcon(stopIcon != null ? (stopDisabled != null ? stopDisabled : createStopIcon(size, disabledFg)) : createStopIcon(size, disabledFg));
 			btnStopServer.setToolTipText("Stop Server");
+			if (btnKillServer != null) {
+				btnKillServer.setText("");
+				btnKillServer.setIcon(killIcon != null ? killIcon : null);
+				btnKillServer.setDisabledIcon(killIcon != null ? (killDisabled != null ? killDisabled : null) : null);
+				btnKillServer.setToolTipText("Kill Server");
+			}
 			btnRestartServer.setText("");
 			btnRestartServer.setIcon(restartIcon != null ? restartIcon : createRestartIcon(size, accentColor));
 			btnRestartServer.setDisabledIcon(restartIcon != null ? (restartDisabled != null ? restartDisabled : createRestartIcon(size, disabledFg)) : createRestartIcon(size, disabledFg));
@@ -830,6 +864,12 @@ public class SpigotGUI extends JFrame {
 			btnStopServer.setDisabledIcon(null);
 			btnStopServer.setText("Stop Server");
 			btnStopServer.setToolTipText(null);
+			if (btnKillServer != null) {
+				btnKillServer.setIcon(null);
+				btnKillServer.setDisabledIcon(null);
+				btnKillServer.setText("Kill Server");
+				btnKillServer.setToolTipText(null);
+			}
 			btnRestartServer.setIcon(null);
 			btnRestartServer.setDisabledIcon(null);
 			btnRestartServer.setText("Restart Server");
@@ -1195,6 +1235,12 @@ public class SpigotGUI extends JFrame {
 			chkConsoleScrollSticky.setVisible(manualMode);
 			chkConsoleScrollSticky.setEnabled(manualMode);
 			if (manualMode) chkConsoleScrollSticky.setSelected(consoleStickToBottom);
+		}
+	}
+
+	void onDisplayKillButtonChanged(boolean display) {
+		if (btnKillServer != null) {
+			btnKillServer.setVisible(display);
 		}
 	}
 

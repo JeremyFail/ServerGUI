@@ -64,6 +64,7 @@ public class SettingsPanel extends JPanel {
 	private JCheckBox openFilesInSystemDefaultCheckBox;
 	private JCheckBox manualConsoleScrollStickyCheckBox;
 	private JCheckBox serverButtonsUseTextCheckBox;
+	private JCheckBox displayKillButtonCheckBox;
 	private JSpinner shutdownCountdownSpinner;
 	private AccentColorPanel accentColorPanel;
 	private JLabel accentThemeControlledLabel;
@@ -479,11 +480,16 @@ public class SettingsPanel extends JPanel {
 		manualConsoleScrollStickyCheckBox.setSelected(settings.isManualConsoleScrollSticky());
 		manualConsoleScrollStickyCheckBox.addActionListener(e -> gui.onManualConsoleScrollStickyChanged(manualConsoleScrollStickyCheckBox.isSelected()));
 		c.gridy = 6; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(manualConsoleScrollStickyCheckBox, c);
+		displayKillButtonCheckBox = new JCheckBox("Display Kill Button");
+		displayKillButtonCheckBox.setToolTipText("Display the Kill Button, which forcefully terminates the server. This should only ever be used if the server is hung as it can cause damage to your Minecraft server. Enable and use with caution!");
+		displayKillButtonCheckBox.setSelected(settings.isDisplayKillButton());
+		displayKillButtonCheckBox.addActionListener(e -> gui.onDisplayKillButtonChanged(displayKillButtonCheckBox.isSelected()));
+		c.gridy = 7; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(displayKillButtonCheckBox, c);
 		serverButtonsUseTextCheckBox = new JCheckBox("Use text for server control buttons");
-		serverButtonsUseTextCheckBox.setToolTipText("When checked, Start/Stop/Restart show text. When unchecked, they show only icons (play, stop, refresh) with tooltips.");
+		serverButtonsUseTextCheckBox.setToolTipText("When checked, Start/Stop/Kill/Restart show text. When unchecked, they show only icons (play, stop, warning, refresh) with tooltips.");
 		serverButtonsUseTextCheckBox.setSelected(settings.isServerButtonsUseText());
 		serverButtonsUseTextCheckBox.addActionListener(e -> gui.applyServerButtonStyle(!serverButtonsUseTextCheckBox.isSelected()));
-		c.gridy = 7; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(serverButtonsUseTextCheckBox, c);
+		c.gridy = 8; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(serverButtonsUseTextCheckBox, c);
 		minRam.setMinimumSize(new Dimension(50, minRam.getPreferredSize().height));
 		maxRam.setMinimumSize(new Dimension(50, maxRam.getPreferredSize().height));
 		fontSpinner.setMinimumSize(new Dimension(50, fontSpinner.getPreferredSize().height));
@@ -561,6 +567,7 @@ public class SettingsPanel extends JPanel {
 	public JCheckBox getOpenFilesInSystemDefaultCheckBox() { return openFilesInSystemDefaultCheckBox; }
 	public JCheckBox getManualConsoleScrollStickyCheckBox() { return manualConsoleScrollStickyCheckBox; }
 	public JCheckBox getServerButtonsUseTextCheckBox() { return serverButtonsUseTextCheckBox; }
+	public JCheckBox getDisplayKillButtonCheckBox() { return displayKillButtonCheckBox; }
 	public JCheckBox getConsoleWrapWordBreakOnlyCheckBox() { return consoleWrapWordBreakOnlyCheckBox; }
 	public AccentColorPanel getAccentColorPanel() { return accentColorPanel; }
 
@@ -615,6 +622,7 @@ public class SettingsPanel extends JPanel {
 			.shutdownCountdownSeconds(getShutdownCountdownSeconds())
 			.consoleWrapWordBreakOnly(consoleWrapWordBreakOnlyCheckBox.isSelected())
 			.accentColorRgb(getAccentColorRgbFromUI())
+			.displayKillButton(displayKillButtonCheckBox.isSelected())
 			.build();
 	}
 }

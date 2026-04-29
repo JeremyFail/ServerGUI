@@ -108,6 +108,7 @@ public class SettingsIO {
                 .set("shutdownCountdownSeconds",  s.getShutdownCountdownSeconds())
                 .set("consoleWrapWordBreakOnly",  s.isConsoleWrapWordBreakOnly())
                 .set("accentColorRgb",            s.getAccentColorRgb())
+                .set("displayKillButton",         s.isDisplayKillButton())
                 .set("serverSettings",            toJsonSS(s.getServerSettings()));
     }
 
@@ -148,6 +149,7 @@ public class SettingsIO {
                 .shutdownCountdownSeconds(num(root,  "shutdownCountdownSeconds", 0))
                 .consoleWrapWordBreakOnly(bool(root, "consoleWrapWordBreakOnly", false))
                 .accentColorRgb(accentColorRgb)
+                .displayKillButton(bool(root, "displayKillButton", false))
                 .build();
     }
 

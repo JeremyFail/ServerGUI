@@ -314,6 +314,16 @@ public class Server {
 	}
 
 	/**
+	 * Forcefully terminates the server process immediately (like SIGKILL).
+	 * Only use this if the server is hung and won't respond to the "stop" command.
+	 */
+	public void kill() {
+		if (process != null && process.isAlive()) {
+			process.destroyForcibly();
+		}
+	}
+
+	/**
 	 * Returns the server JVM process. Used by the Resources tab for PID and OSHI metrics.
 	 */
 	public Process getProcess() {

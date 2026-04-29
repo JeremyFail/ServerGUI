@@ -22,6 +22,7 @@ public class Settings implements Serializable {
 	private int shutdownCountdownSeconds = 0;
 	private boolean consoleWrapWordBreakOnly = false;
 	private int accentColorRgb = 0x0096E6;
+	private boolean displayKillButton = false;
 
 	private Settings(Builder b) {
 		this.serverSettings            = b.serverSettings;
@@ -36,6 +37,7 @@ public class Settings implements Serializable {
 		this.shutdownCountdownSeconds  = b.shutdownCountdownSeconds;
 		this.consoleWrapWordBreakOnly  = b.consoleWrapWordBreakOnly;
 		this.accentColorRgb            = b.accentColorRgb;
+		this.displayKillButton         = b.displayKillButton;
 	}
 
 	/**
@@ -56,7 +58,8 @@ public class Settings implements Serializable {
 				.serverButtonsUseText(serverButtonsUseText)
 				.shutdownCountdownSeconds(shutdownCountdownSeconds)
 				.consoleWrapWordBreakOnly(consoleWrapWordBreakOnly)
-				.accentColorRgb(accentColorRgb);
+				.accentColorRgb(accentColorRgb)
+				.displayKillButton(displayKillButton);
 	}
 
 	/**
@@ -76,6 +79,7 @@ public class Settings implements Serializable {
 		private int            shutdownCountdownSeconds  = 0;
 		private boolean        consoleWrapWordBreakOnly  = false;
 		private int            accentColorRgb            = 0x0096E6;
+		private boolean        displayKillButton         = false;
 
 		public Builder serverSettings(ServerSettings v)      { serverSettings = v != null ? v : ServerSettings.getDefault(); return this; }
 		public Builder theme(Theme v)                        { theme = v != null ? v : Theme.getDefaultForPlatform(); return this; }
@@ -89,6 +93,7 @@ public class Settings implements Serializable {
 		public Builder shutdownCountdownSeconds(int v)       { shutdownCountdownSeconds = Math.max(0, v); return this; }
 		public Builder consoleWrapWordBreakOnly(boolean v)   { consoleWrapWordBreakOnly = v; return this; }
 		public Builder accentColorRgb(int v)                 { accentColorRgb = v != 0 ? v : 0x0096E6; return this; }
+		public Builder displayKillButton(boolean v)          { displayKillButton = v; return this; }
 
 		public Settings build() { return new Settings(this); }
 	}
@@ -129,6 +134,9 @@ public class Settings implements Serializable {
 
 	public int getAccentColorRgb() { return accentColorRgb != 0 ? accentColorRgb : 0x0096E6; }
 	public void setAccentColorRgb(int accentColorRgb) { this.accentColorRgb = accentColorRgb != 0 ? accentColorRgb : 0x0096E6; }
+
+	public boolean isDisplayKillButton() { return displayKillButton; }
+	public void setDisplayKillButton(boolean displayKillButton) { this.displayKillButton = displayKillButton; }
 
 	/** Normalize fields that may be absent or invalid in old binary-serialized files. */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
