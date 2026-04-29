@@ -46,10 +46,11 @@ public class FilesPanel extends JPanel {
 					setBackground(bg != null ? bg.darker() : java.awt.Color.LIGHT_GRAY);
 				}
 				String s = value == null ? "" : value.toString();
+				Icon upDirIcon = UIManager.getIcon("FileChooser.upFolderIcon");
 				Icon dirIcon = UIManager.getIcon("FileView.directoryIcon");
 				Icon fileIcon = UIManager.getIcon("FileView.fileIcon");
 				if ("..".equals(s)) {
-					setIcon(dirIcon != null ? dirIcon : UIManager.getIcon("FileView.upFolderIcon"));
+					setIcon(upDirIcon != null ? upDirIcon : dirIcon);
 					setText(".. (up one level)");
 				} else if (s.startsWith("/")) {
 					setIcon(dirIcon);
