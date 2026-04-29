@@ -106,6 +106,9 @@ public final class ConsoleStyleHelper {
     private Color defaultBg;
     private Color currentFg;
     private boolean currentBold;
+    private boolean currentItalic;
+    private boolean currentUnderline;
+    private boolean currentStrikethrough;
     /** When set, next flush will store this original RGB as CANONICAL_ORIGINAL_RGB so we can restore color when re-enabling. */
     private Integer currentCanonicalRGB;
     private boolean colorsEnabled = true;
@@ -189,7 +192,7 @@ public final class ConsoleStyleHelper {
                     if (canonicalRGB != null) {
                         attr.addAttribute(CANONICAL_ORIGINAL_RGB, canonicalRGB);
                     }
-                    doc.setCharacterAttributes(start, runLen, attr, true);
+                    doc.setCharacterAttributes(start, runLen, attr, false);
                 }
                 offset = elem.getEndOffset();
             }
@@ -252,7 +255,7 @@ public final class ConsoleStyleHelper {
                 if (canonObj != null) {
                     attr.addAttribute(CANONICAL_ORIGINAL_RGB, canonObj);
                 }
-                doc.setCharacterAttributes(start, runLen, attr, true);
+                doc.setCharacterAttributes(start, runLen, attr, false);
                 offset = elem.getEndOffset();
             }
         } catch (Exception e) {
@@ -323,6 +326,9 @@ public final class ConsoleStyleHelper {
         StyleConstants.setFontFamily(baseAttrs, baseFont.getFamily());
         StyleConstants.setFontSize(baseAttrs, baseFont.getSize());
         StyleConstants.setBold(baseAttrs, currentBold);
+        StyleConstants.setItalic(baseAttrs, currentItalic);
+        StyleConstants.setUnderline(baseAttrs, currentUnderline);
+        StyleConstants.setStrikeThrough(baseAttrs, currentStrikethrough);
         Color displayColor = colorsEnabled ? currentFg : defaultFg;
         StyleConstants.setForeground(baseAttrs, displayColor);
         if (currentCanonicalRGB != null) {
@@ -468,6 +474,9 @@ public final class ConsoleStyleHelper {
         if (c == 'r') {
             currentFg = defaultFg;
             currentBold = false;
+            currentItalic = false;
+            currentUnderline = false;
+            currentStrikethrough = false;
             currentCanonicalRGB = null;
             return true;
         }
@@ -475,8 +484,20 @@ public final class ConsoleStyleHelper {
             currentBold = true;
             return true;
         }
-        if (c == 'o' || c == 'n' || c == 'm' || c == 'k') {
-            // italic, underline, strikethrough, obfuscated - we don't render, but consume
+        if (c == 'o') {
+            currentItalic = true;
+            return true;
+        }
+        if (c == 'n') {
+            currentUnderline = true;
+            return true;
+        }
+        if (c == 'm') {
+            currentStrikethrough = true;
+            return true;
+        }
+        if (c == 'k') {
+            // obfuscated - not rendered
             return true;
         }
         return false;
