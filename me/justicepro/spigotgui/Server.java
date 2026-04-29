@@ -2,6 +2,7 @@ package me.justicepro.spigotgui;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -303,7 +304,7 @@ public class Server {
 
 	public void sendCommand(String command) throws ProcessException {
 		
-		PrintWriter output = new PrintWriter(process.getOutputStream(), true);
+		PrintWriter output = new PrintWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8), true);
 
 		if (process.isAlive()) {
 			output.println(command);
