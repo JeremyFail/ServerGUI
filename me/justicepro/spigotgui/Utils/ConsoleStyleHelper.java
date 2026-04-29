@@ -109,6 +109,7 @@ public final class ConsoleStyleHelper {
     /** When set, next flush will store this original RGB as CANONICAL_ORIGINAL_RGB so we can restore color when re-enabling. */
     private Integer currentCanonicalRGB;
     private boolean colorsEnabled = true;
+    private boolean adaptiveColors = true;
 
     /** Original color RGB -> (dark-bg version, light-bg version). New colors are added as we see them. */
     private final Map<Integer, ColorPair> canonicalMap = new HashMap<>();
@@ -213,11 +214,18 @@ public final class ConsoleStyleHelper {
     public void setColorsEnabled(boolean enabled) {
         if (this.colorsEnabled == enabled) return;
         this.colorsEnabled = enabled;
-        refreshDocumentColorsFromCanonical();
+        refreshDocumentColors();
     }
 
-    /** Walk the document and set each run's Foreground from its CANONICAL_ORIGINAL_RGB (if present) or defaultFg. */
-    private void refreshDocumentColorsFromCanonical() {
+    /** Enable or disable background-adaptive color adjustment. When enabled, colors are adjusted for readability on the current background. When disabled, colors are displayed exactly as received. */
+    public void setAdaptiveColors(boolean enabled) {
+        if (this.adaptiveColors == enabled) return;
+        this.adaptiveColors = enabled;
+        refreshDocumentColors();
+    }
+
+    /** Walk the document and set each run's Foreground reflecting both colorsEnabled and adaptiveColors. */
+    private void refreshDocumentColors() {
         StyledDocument doc = textPane.getStyledDocument();
         try {
             int len = doc.getLength();
@@ -230,11 +238,11 @@ public final class ConsoleStyleHelper {
                 Color newFg;
                 if (colorsEnabled && canonObj instanceof Integer) {
                     int originalRGB = (Integer) canonObj;
-                    ColorPair pair = canonicalMap.get(originalRGB);
-                    if (pair != null) {
-                        newFg = isLightBackground() ? pair.lightColor : pair.darkColor;
+                    if (adaptiveColors) {
+                        ColorPair pair = canonicalMap.get(originalRGB);
+                        newFg = pair != null ? (isLightBackground() ? pair.lightColor : pair.darkColor) : defaultFg;
                     } else {
-                        newFg = defaultFg;
+                        newFg = new Color(originalRGB);
                     }
                 } else {
                     newFg = defaultFg;
@@ -378,10 +386,11 @@ public final class ConsoleStyleHelper {
         }
     }
 
-    /** Get the display color for this original: use dark or light version from the canonical map (add to map if new). */
+    /** Get the display color for this original: always populate the canonical map, then return adapted or raw color depending on adaptiveColors flag. */
     private Color getDisplayColorForOriginal(Color original) {
         if (original == null) return null;
-        ColorPair pair = getOrCreateCanonicalPair(original);
+        ColorPair pair = getOrCreateCanonicalPair(original); // always build map for later use
+        if (!adaptiveColors) return original;
         return isLightBackground() ? pair.lightColor : pair.darkColor;
     }
 

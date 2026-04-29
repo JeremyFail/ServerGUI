@@ -14,7 +14,8 @@ public class Settings implements Serializable {
 	private Theme theme;
 	private Object fontSize; // Object for legacy binary compat; always Integer in practice
 	private boolean consoleDarkMode = false;
-	private boolean consoleColorsEnabled = true;
+	private Boolean consoleAdaptiveColors; // boxed: null in old files -> default true applied in readObject
+	private Boolean consoleColorsEnabled;  // boxed: null in old files -> default true applied in readObject
 	private boolean openFilesInSystemDefault = false;
 	private String fileEditorTheme = "default";
 	private boolean manualConsoleScrollSticky = false;
@@ -28,8 +29,9 @@ public class Settings implements Serializable {
 		this.serverSettings            = b.serverSettings;
 		this.theme                     = b.theme;
 		this.fontSize                  = b.fontSize;
-		this.consoleDarkMode           = b.consoleDarkMode;
-		this.consoleColorsEnabled      = b.consoleColorsEnabled;
+		this.consoleDarkMode          = b.consoleDarkMode;
+		this.consoleAdaptiveColors    = b.consoleAdaptiveColors;
+		this.consoleColorsEnabled     = b.consoleColorsEnabled;
 		this.openFilesInSystemDefault  = b.openFilesInSystemDefault;
 		this.fileEditorTheme           = b.fileEditorTheme;
 		this.manualConsoleScrollSticky = b.manualConsoleScrollSticky;
@@ -51,7 +53,8 @@ public class Settings implements Serializable {
 				.theme(theme)
 				.fontSize(getFontSize())
 				.consoleDarkMode(consoleDarkMode)
-				.consoleColorsEnabled(consoleColorsEnabled)
+				.consoleAdaptiveColors(isConsoleAdaptiveColors())
+				.consoleColorsEnabled(isConsoleColorsEnabled())
 				.openFilesInSystemDefault(openFilesInSystemDefault)
 				.fileEditorTheme(fileEditorTheme)
 				.manualConsoleScrollSticky(manualConsoleScrollSticky)
@@ -71,6 +74,7 @@ public class Settings implements Serializable {
 		private Theme          theme                     = Theme.getDefaultForPlatform();
 		private int            fontSize                  = 13;
 		private boolean        consoleDarkMode           = false;
+		private boolean        consoleAdaptiveColors     = true;
 		private boolean        consoleColorsEnabled      = true;
 		private boolean        openFilesInSystemDefault  = false;
 		private String         fileEditorTheme           = "default";
@@ -85,6 +89,7 @@ public class Settings implements Serializable {
 		public Builder theme(Theme v)                        { theme = v != null ? v : Theme.getDefaultForPlatform(); return this; }
 		public Builder fontSize(int v)                       { fontSize = v > 0 ? v : 13; return this; }
 		public Builder consoleDarkMode(boolean v)            { consoleDarkMode = v; return this; }
+		public Builder consoleAdaptiveColors(boolean v)      { consoleAdaptiveColors = v; return this; }
 		public Builder consoleColorsEnabled(boolean v)       { consoleColorsEnabled = v; return this; }
 		public Builder openFilesInSystemDefault(boolean v)   { openFilesInSystemDefault = v; return this; }
 		public Builder fileEditorTheme(String v)             { fileEditorTheme = v != null && !v.isEmpty() ? v : "default"; return this; }
@@ -111,8 +116,11 @@ public class Settings implements Serializable {
 	public boolean isConsoleDarkMode() { return consoleDarkMode; }
 	public void setConsoleDarkMode(boolean consoleDarkMode) { this.consoleDarkMode = consoleDarkMode; }
 
-	public boolean isConsoleColorsEnabled() { return consoleColorsEnabled; }
-	public void setConsoleColorsEnabled(boolean consoleColorsEnabled) { this.consoleColorsEnabled = consoleColorsEnabled; }
+	public boolean isConsoleAdaptiveColors() { return consoleAdaptiveColors != null ? consoleAdaptiveColors : true; }
+	public void setConsoleAdaptiveColors(boolean v) { this.consoleAdaptiveColors = v; }
+
+	public boolean isConsoleColorsEnabled() { return consoleColorsEnabled != null ? consoleColorsEnabled : true; }
+	public void setConsoleColorsEnabled(boolean v) { this.consoleColorsEnabled = v; }
 
 	public boolean isOpenFilesInSystemDefault() { return openFilesInSystemDefault; }
 	public void setOpenFilesInSystemDefault(boolean openFilesInSystemDefault) { this.openFilesInSystemDefault = openFilesInSystemDefault; }
@@ -143,5 +151,7 @@ public class Settings implements Serializable {
 		in.defaultReadObject();
 		if (shutdownCountdownSeconds < 0) shutdownCountdownSeconds = 0;
 		if (accentColorRgb == 0) accentColorRgb = 0x0096E6;
+		if (consoleAdaptiveColors == null) consoleAdaptiveColors = true;
+		if (consoleColorsEnabled == null) consoleColorsEnabled = true;
 	}
 }

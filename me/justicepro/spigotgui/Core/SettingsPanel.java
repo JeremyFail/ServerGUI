@@ -59,6 +59,7 @@ public class SettingsPanel extends JPanel {
 	private JLabel lblTheme;
 	private JComboBox<String> themeBox;
 	private JCheckBox consoleDarkModeCheckBox;
+	private JCheckBox consoleAdaptiveColorsCheckBox;
 	private JCheckBox disableConsoleColorsCheckBox;
 	private JCheckBox consoleWrapWordBreakOnlyCheckBox;
 	private JCheckBox openFilesInSystemDefaultCheckBox;
@@ -178,6 +179,14 @@ public class SettingsPanel extends JPanel {
 		consoleDarkModeCheckBox.setToolTipText("Use a dark background in the console tab. When unchecked, the console uses a light background.");
 		consoleDarkModeCheckBox.setSelected(settings.isConsoleDarkMode());
 		consoleDarkModeCheckBox.addActionListener(e -> gui.onConsoleDarkModeChanged(consoleDarkModeCheckBox.isSelected()));
+
+		consoleAdaptiveColorsCheckBox = new JCheckBox("Adapt console colors for background");
+		consoleAdaptiveColorsCheckBox.setToolTipText("<html>When enabled, console colors are automatically adjusted to remain readable on the current background.<br>"
+				+ "Bright colors are lightened on dark backgrounds; dark colors are darkened on light backgrounds.<br>"
+				+ "When disabled, colors are displayed exactly as received from the server output.<br>"
+				+ "<i>Note: if console colors are disabled, this setting has no effect.</i></html>");
+		consoleAdaptiveColorsCheckBox.setSelected(settings.isConsoleAdaptiveColors());
+		consoleAdaptiveColorsCheckBox.addActionListener(e -> gui.onConsoleAdaptiveColorsChanged(consoleAdaptiveColorsCheckBox.isSelected()));
 
 		disableConsoleColorsCheckBox = new JCheckBox("Disable console colors");
 		disableConsoleColorsCheckBox.setToolTipText("When checked, console text is shown in the default color only (no ANSI or § colors).");
@@ -473,23 +482,24 @@ public class SettingsPanel extends JPanel {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridy = 3; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleDarkModeCheckBox, c);
 		c.gridwidth = 1;
-		c.gridy = 4; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(disableConsoleColorsCheckBox, c);
-		c.gridy = 5; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleWrapWordBreakOnlyCheckBox, c);
+		c.gridy = 4; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleAdaptiveColorsCheckBox, c);
+		c.gridy = 5; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(disableConsoleColorsCheckBox, c);
+		c.gridy = 6; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(consoleWrapWordBreakOnlyCheckBox, c);
 		manualConsoleScrollStickyCheckBox = new JCheckBox("Manual console scroll sticky");
 		manualConsoleScrollStickyCheckBox.setToolTipText("<html>When checked, a \"Console scroll sticky\" checkbox appears on the Console tab.<br>You control whether the console auto-scrolls to the bottom by toggling that checkbox.<br>When unchecked, sticky is automatic: scroll to bottom to stick, scroll up to unstick.</html>");
 		manualConsoleScrollStickyCheckBox.setSelected(settings.isManualConsoleScrollSticky());
 		manualConsoleScrollStickyCheckBox.addActionListener(e -> gui.onManualConsoleScrollStickyChanged(manualConsoleScrollStickyCheckBox.isSelected()));
-		c.gridy = 6; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(manualConsoleScrollStickyCheckBox, c);
+		c.gridy = 7; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(manualConsoleScrollStickyCheckBox, c);
 		displayKillButtonCheckBox = new JCheckBox("Display Kill Button");
 		displayKillButtonCheckBox.setToolTipText("Display the Kill Button, which forcefully terminates the server. This should only ever be used if the server is hung as it can cause damage to your Minecraft server. Enable and use with caution!");
 		displayKillButtonCheckBox.setSelected(settings.isDisplayKillButton());
 		displayKillButtonCheckBox.addActionListener(e -> gui.onDisplayKillButtonChanged(displayKillButtonCheckBox.isSelected()));
-		c.gridy = 7; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(displayKillButtonCheckBox, c);
+		c.gridy = 8; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(displayKillButtonCheckBox, c);
 		serverButtonsUseTextCheckBox = new JCheckBox("Use text for server control buttons");
 		serverButtonsUseTextCheckBox.setToolTipText("When checked, Start/Stop/Kill/Restart show text. When unchecked, they show only icons (play, stop, warning, refresh) with tooltips.");
 		serverButtonsUseTextCheckBox.setSelected(settings.isServerButtonsUseText());
 		serverButtonsUseTextCheckBox.addActionListener(e -> gui.applyServerButtonStyle(!serverButtonsUseTextCheckBox.isSelected()));
-		c.gridy = 8; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(serverButtonsUseTextCheckBox, c);
+		c.gridy = 9; c.gridx = 0; c.gridwidth = 2; appearanceSection.add(serverButtonsUseTextCheckBox, c);
 		minRam.setMinimumSize(new Dimension(50, minRam.getPreferredSize().height));
 		maxRam.setMinimumSize(new Dimension(50, maxRam.getPreferredSize().height));
 		fontSpinner.setMinimumSize(new Dimension(50, fontSpinner.getPreferredSize().height));
@@ -563,6 +573,7 @@ public class SettingsPanel extends JPanel {
 	public JSpinner getFontSpinner() { return fontSpinner; }
 	public JLabel getLblTheme() { return lblTheme; }
 	public JCheckBox getConsoleDarkModeCheckBox() { return consoleDarkModeCheckBox; }
+	public JCheckBox getConsoleAdaptiveColorsCheckBox() { return consoleAdaptiveColorsCheckBox; }
 	public JCheckBox getDisableConsoleColorsCheckBox() { return disableConsoleColorsCheckBox; }
 	public JCheckBox getOpenFilesInSystemDefaultCheckBox() { return openFilesInSystemDefaultCheckBox; }
 	public JCheckBox getManualConsoleScrollStickyCheckBox() { return manualConsoleScrollStickyCheckBox; }
@@ -614,6 +625,7 @@ public class SettingsPanel extends JPanel {
 			.theme(getSelectedTheme())
 			.fontSize(((Number) fontSpinner.getValue()).intValue())
 			.consoleDarkMode(consoleDarkModeCheckBox.isSelected())
+			.consoleAdaptiveColors(consoleAdaptiveColorsCheckBox.isSelected())
 			.consoleColorsEnabled(!disableConsoleColorsCheckBox.isSelected())
 			.openFilesInSystemDefault(openFilesInSystemDefaultCheckBox.isSelected())
 			.fileEditorTheme(settings.getFileEditorTheme())

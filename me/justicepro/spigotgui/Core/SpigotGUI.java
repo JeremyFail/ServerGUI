@@ -292,6 +292,7 @@ public class SpigotGUI extends JFrame {
 		consoleScrollPane = consolePanel.getConsoleScrollPane();
 		chkConsoleScrollSticky = consolePanel.getChkConsoleScrollSticky();
 		consoleStyleHelper = consolePanel.getConsoleStyleHelper();
+		consoleStyleHelper.setAdaptiveColors(settings.isConsoleAdaptiveColors());
 		manualConsoleScrollStickyMode = settings.isManualConsoleScrollSticky();
 
 		// --- Top bar: server controls and status (visible in all tabs) ---
@@ -1216,6 +1217,9 @@ public class SpigotGUI extends JFrame {
 	}
 	void onConsoleDarkModeChanged(boolean dark) {
 		if (consoleStyleHelper != null) consoleStyleHelper.setDarkMode(dark);
+	}
+	void onConsoleAdaptiveColorsChanged(boolean adaptive) {
+		if (consoleStyleHelper != null) consoleStyleHelper.setAdaptiveColors(adaptive);
 	}
 	void onConsoleColorsEnabledChanged(boolean enabled) {
 		if (consoleStyleHelper != null) consoleStyleHelper.setColorsEnabled(enabled);
