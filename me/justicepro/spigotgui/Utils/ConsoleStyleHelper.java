@@ -365,21 +365,59 @@ public final class ConsoleStyleHelper {
             return;
         }
         String[] parts = code.split(";");
-        for (String part : parts) {
-            int n;
+        int[] nums = new int[parts.length];
+        for (int i = 0; i < parts.length; i++) {
             try {
-                n = Integer.parseInt(part.trim());
+                nums[i] = Integer.parseInt(parts[i].trim());
             } catch (NumberFormatException e) {
-                continue;
+                nums[i] = -1;
             }
+        }
+        for (int i = 0; i < nums.length; i++) {
+            int n = nums[i];
             if (n == 0) {
                 currentFg = defaultFg;
                 currentBold = false;
+                currentItalic = false;
+                currentUnderline = false;
+                currentStrikethrough = false;
                 currentCanonicalRGB = null;
             } else if (n == 1) {
                 currentBold = true;
+            } else if (n == 3) {
+                currentItalic = true;
+            } else if (n == 4) {
+                currentUnderline = true;
+            } else if (n == 9) {
+                currentStrikethrough = true;
             } else if (n == 22) {
                 currentBold = false;
+            } else if (n == 23) {
+                currentItalic = false;
+            } else if (n == 24) {
+                currentUnderline = false;
+            } else if (n == 29) {
+                currentStrikethrough = false;
+            } else if (n == 38) {
+                if (i + 2 < nums.length && nums[i + 1] == 5) {
+                    // 256-color foreground: ESC[38;5;nm
+                    int idx = nums[i + 2];
+                    if (idx >= 0 && idx <= 255) {
+                        Color orig = ansi256Color(idx);
+                        currentFg = getDisplayColorForOriginal(orig);
+                        currentCanonicalRGB = orig.getRGB() & 0x00FFFFFF;
+                    }
+                    i += 2;
+                } else if (i + 4 < nums.length && nums[i + 1] == 2) {
+                    // Truecolor foreground: ESC[38;2;r;g;bm
+                    int r = nums[i + 2], g = nums[i + 3], b = nums[i + 4];
+                    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+                        Color orig = new Color(r, g, b);
+                        currentFg = getDisplayColorForOriginal(orig);
+                        currentCanonicalRGB = orig.getRGB() & 0x00FFFFFF;
+                    }
+                    i += 4;
+                }
             } else if (n >= 30 && n <= 37) {
                 int idx = n - 30;
                 currentFg = ansiColorForMode(idx, false);
@@ -452,6 +490,30 @@ public final class ConsoleStyleHelper {
     private Color ansiColorForMode(int index, boolean bright) {
         Color original = ANSI_COLORS[bright ? 8 + index : index];
         return getDisplayColorForOriginal(original);
+    }
+
+    /**
+     * Returns the canonical Color for a given xterm-256 palette index.
+     * 0–15  : standard + bright ANSI colors (same as ANSI_COLORS)
+     * 16–231: 6×6×6 RGB cube
+     * 232–255: greyscale ramp
+     */
+    private static Color ansi256Color(int n) {
+        if (n < 16) {
+            return ANSI_COLORS[n];
+        }
+        if (n < 232) {
+            int idx = n - 16;
+            int ri = idx / 36;
+            int gi = (idx / 6) % 6;
+            int bi = idx % 6;
+            int r = ri == 0 ? 0 : 95 + 40 * (ri - 1);
+            int g = gi == 0 ? 0 : 95 + 40 * (gi - 1);
+            int b = bi == 0 ? 0 : 95 + 40 * (bi - 1);
+            return new Color(r, g, b);
+        }
+        int gray = 8 + 10 * (n - 232);
+        return new Color(gray, gray, gray);
     }
 
     private static boolean isMcColorCode(char c) {
