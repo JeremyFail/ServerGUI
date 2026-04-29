@@ -38,6 +38,16 @@ public final class ConsoleStyleHelper {
 
     private static final Pattern URL_PATTERN = Pattern.compile("https?://[^\\s<>\"']+");
 
+    /**
+     * Matches a log-level token that is preceded by '/', '[', or ' ' and followed by ']' or ':'.
+     * Only applied to the first {@link #LOG_LEVEL_SCAN_LIMIT} characters of each line.
+     */
+    private static final Pattern LOG_LEVEL_PATTERN = Pattern.compile(
+        "(?<=[/\\[ ])(WARN(?:ING)?|ERROR|SEVERE|FATAL)(?=[\\]:])"
+    );
+    /** How far into a line to scan for a level token (covers even long thread names). */
+    private static final int LOG_LEVEL_SCAN_LIMIT = 50;
+
     /** Default text color for light background - black so it's readable on white */
     private static final Color DEFAULT_FG_LIGHT = Color.BLACK;
     /** Default text color for dark background */
@@ -247,6 +257,7 @@ public final class ConsoleStyleHelper {
      */
     public void appendLine(String line) {
         if (line == null) line = "";
+        line = injectLevelColor(line);
         StyledDocument doc = textPane.getStyledDocument();
         try {
             trimDocumentIfNeeded(doc);
@@ -460,6 +471,25 @@ public final class ConsoleStyleHelper {
             return true;
         }
         return false;
+    }
+
+    /**
+     * If the line has no existing ANSI codes, scans the first {@link #LOG_LEVEL_SCAN_LIMIT}
+     * characters for a level token (WARN, WARNING, ERROR, SEVERE, FATAL) preceded by
+     * '/', '[', or ' ' and followed by ']' or ':'. When found, wraps only that token
+     * in an ANSI color sequence followed by a reset, leaving all surrounding text unstyled.
+     * Lines that already contain ANSI codes are returned unchanged.
+     */
+    private String injectLevelColor(String line) {
+        if (line.indexOf('\u001B') >= 0) return line; // server already sent ANSI, leave it alone
+        int scanEnd = Math.min(line.length(), LOG_LEVEL_SCAN_LIMIT);
+        Matcher m = LOG_LEVEL_PATTERN.matcher(line);
+        m.region(0, scanEnd);
+        if (!m.find()) return line;
+        String level = m.group();
+        // WARN / WARNING -> yellow; ERROR / SEVERE / FATAL -> bright red
+        String ansi = (level.charAt(0) == 'W') ? "\u001B[33m" : "\u001B[91m";
+        return line.substring(0, m.start()) + ansi + level + "\u001B[0m" + line.substring(m.end());
     }
 
     private void trimDocumentIfNeeded(StyledDocument doc) throws BadLocationException {
