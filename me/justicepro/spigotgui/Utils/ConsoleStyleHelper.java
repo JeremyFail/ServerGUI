@@ -323,7 +323,7 @@ public final class ConsoleStyleHelper {
         String s = plain.toString();
         plain.setLength(0);
         SimpleAttributeSet baseAttrs = new SimpleAttributeSet();
-        StyleConstants.setFontFamily(baseAttrs, baseFont.getFamily());
+        StyleConstants.setFontFamily(baseAttrs, Font.MONOSPACED);
         StyleConstants.setFontSize(baseAttrs, baseFont.getSize());
         StyleConstants.setBold(baseAttrs, currentBold);
         StyleConstants.setItalic(baseAttrs, currentItalic);

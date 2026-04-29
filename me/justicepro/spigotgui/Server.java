@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +21,14 @@ public class Server {
 	private String arguments;
 	/** Custom java/javaw executable path. Null means use the same JVM as the app. */
 	private String customJvmPath;
-	
+	/**
+	 * Charset used to encode commands written to the server's stdin.
+	 * Defaults to UTF-8; switch to ISO-8859-1 for Spigot/Bukkit, whose bundled jline2
+	 * reads stdin bytes as the Windows OEM/ANSI code page (where § = 0xA7, same as Latin-1)
+	 * regardless of -Dfile.encoding.
+	 */
+	private volatile Charset stdinCharset = StandardCharsets.UTF_8;
+
 	private Process process;
 	
 	public Server(File jar, String arguments, String switches) {
@@ -46,7 +54,12 @@ public class Server {
 			// Launch the JVM directly instead of piping a line into cmd/sh. Interactive shells with redirected
 			// stdin are unreliable; bare "java" also depends on PATH rather than the runtime that
 			// started this app. Merge stderr so launcher errors (e.g. bad flags) appear in the console.
-			String ansiFlag = "-Dnet.kyori.ansi.colorLevel=indexed16";
+			String ansiFlag = "-Dnet.kyori.ansi.colorLevel=truecolor";
+			String encodingFlag = "-Dfile.encoding=UTF-8";
+			String stdoutEncodingFlag = "-Dstdout.encoding=UTF-8"; // Java 17+: overrides System.out charset; log4j2 ConsoleAppender writes through System.out
+			// Force jline2 (Spigot) to use its dumb/pipe mode so it honours file.encoding
+			// rather than using native Win32 console APIs. jline3 (Paper) ignores this property.
+			String jlineFlag = "-Djline.terminal=jline.UnsupportedTerminal";
 			String javaExe = resolveJavaExecutable();
 			int targetFeature = (customJvmPath != null) ? probeJvmFeatureVersion(javaExe) : javaFeatureVersion();
 			JvmSwitchNormalization norm = normalizeJvmSwitchesWithNotes(switches, targetFeature);
@@ -56,6 +69,9 @@ public class Server {
 			cmd.add(javaExe);
 			appendSplitTokens(cmd, norm.normalized);
 			cmd.add(ansiFlag);
+			cmd.add(encodingFlag);
+			cmd.add(stdoutEncodingFlag);
+			cmd.add(jlineFlag);
 			cmd.add("-jar");
 			cmd.add(jar.getAbsolutePath());
 			appendSplitTokens(cmd, arguments);
@@ -207,6 +223,22 @@ public class Server {
 				continue;
 			}
 			String lower = t.toLowerCase();
+			if (lower.startsWith("-dfile.encoding=")) {
+				warnings.add("Removed " + t + " (-Dfile.encoding is managed by ServerGUI and cannot be overridden here).");
+				continue;
+			}
+			if (lower.startsWith("-dstdout.encoding=")) {
+				warnings.add("Removed " + t + " (-Dstdout.encoding is managed by ServerGUI and cannot be overridden here).");
+				continue;
+			}
+			if (lower.startsWith("-dnet.kyori.ansi.colorlevel=")) {
+				warnings.add("Removed " + t + " (-Dnet.kyori.ansi.colorLevel is managed by ServerGUI and cannot be overridden here).");
+				continue;
+			}
+			if (lower.startsWith("-djline.terminal=")) {
+				warnings.add("Removed " + t + " (-Djline.terminal is managed by ServerGUI and cannot be overridden here).");
+				continue;
+			}
 			if ("-xnoagent".equals(lower)) {
 				warnings.add("Removed -Xnoagent (not supported on current JDKs).");
 				continue;
@@ -302,16 +334,25 @@ public class Server {
 		}
 	}
 
+	public void setStdinCharset(Charset charset) {
+		this.stdinCharset = charset != null ? charset : StandardCharsets.UTF_8;
+	}
+
+	public Charset getStdinCharset() {
+		return stdinCharset;
+	}
+
 	public void sendCommand(String command) throws ProcessException {
-		
-		PrintWriter output = new PrintWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8), true);
+		// Strip variation selectors (U+FE0E/U+FE0F) — invisible codepoints that modify emoji
+		// presentation; meaningless in game and cause encoding issues on Latin-1 servers.
+		command = command.replaceAll("[\\uFE0E\\uFE0F]", "");
+		PrintWriter output = new PrintWriter(new OutputStreamWriter(process.getOutputStream(), stdinCharset), true);
 
 		if (process.isAlive()) {
 			output.println(command);
-		}else {
+		} else {
 			throw new ProcessException();
 		}
-		
 	}
 
 	/**

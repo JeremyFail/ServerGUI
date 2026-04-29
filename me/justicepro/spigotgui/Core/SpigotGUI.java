@@ -1107,15 +1107,12 @@ public class SpigotGUI extends JFrame {
 		if (module != null) module.sendCommand(command);
 	}
 
-	/** Returns a Unicode-friendly monospace font for the console. */
+	/** 
+	 * Returns a monospace font for the console using Java's logical "Monospaced" name.
+	 * This lets the JVM pick the best available monospace font on each platform and enables
+	 * automatic composite-font fallback for Unicode characters (emoji, symbols, etc.).
+	 */
 	private static Font getConsoleMonospaceFont(int size) {
-		String[] preferred = { "Consolas", "DejaVu Sans Mono", "Monospaced", "Courier New" };
-		for (String name : preferred) {
-			Font f = new Font(name, Font.PLAIN, size);
-			if (name.equals(f.getFamily())) {
-				return f;
-			}
-		}
 		return new Font(Font.MONOSPACED, Font.PLAIN, size);
 	}
 
@@ -1328,6 +1325,16 @@ public class SpigotGUI extends JFrame {
 		@Override
 		public void onBukkitVersionDetected(String version) {
 			super.onBukkitVersionDetected(version);
+
+			// On Windows, Spigot/Bukkit's bundled jline2 reads stdin via Win32 native console
+			// APIs, decoding bytes with the OEM/ANSI code page regardless of -Dfile.encoding.
+			// Writing ISO-8859-1 makes § arrive as the single byte 0xA7 that jline2 expects.
+			// On Linux/Mac, jline2 detects the piped stdin is not a TTY and falls back to
+			// System.in with the JVM default charset, so -Dfile.encoding=UTF-8 works there.
+			// Paper uses jline3 on all platforms and reads UTF-8 correctly; it keeps the default.
+			if (server != null && System.getProperty("os.name", "").toLowerCase().contains("win")) {
+				server.setStdinCharset(java.nio.charset.StandardCharsets.ISO_8859_1);
+			}
 
 			setVersionDisplay();
 		}
