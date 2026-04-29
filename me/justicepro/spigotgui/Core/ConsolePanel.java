@@ -2,15 +2,24 @@ package me.justicepro.spigotgui.Core;
 
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -35,6 +44,10 @@ public class ConsolePanel extends JPanel {
 	private final JCheckBox chkConsoleInputAsSay;
 	private final JCheckBox chkConsoleScrollSticky;
 	private final ConsoleStyleHelper consoleStyleHelper;
+
+	private final List<String> commandHistory = new ArrayList<>();
+	private int historyIndex = 0;
+	private String pendingText = "";
 
 	/**
 	 * @param gui Main frame; must implement console callbacks (send command, scroll, sticky).
@@ -115,14 +128,68 @@ public class ConsolePanel extends JPanel {
 		consoleCommandInput.setMargin(new Insets(4, 6, 4, 6));
 		consoleCommandInput.setPreferredSize(new java.awt.Dimension(consoleCommandInput.getPreferredSize().width, 26));
 		consoleCommandInput.setMinimumSize(new java.awt.Dimension(60, 26));
-		consoleCommandInput.addActionListener(e -> {
+		Runnable sendCmd = () -> {
 			String text = consoleCommandInput.getText().trim();
 			if (text.isEmpty()) return;
+			commandHistory.add(text);
+			historyIndex = commandHistory.size();
+			pendingText = "";
 			gui.sendConsoleCommand(text, chkConsoleInputAsSay.isSelected());
 			consoleCommandInput.setText("");
 			gui.scheduleScrollAfterCommand();
+		};
+		consoleCommandInput.addActionListener(e -> sendCmd.run());
+		consoleCommandInput.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_UP) {
+					if (commandHistory.isEmpty()) return;
+					if (historyIndex == commandHistory.size()) {
+						pendingText = consoleCommandInput.getText();
+					}
+					if (historyIndex > 0) {
+						historyIndex--;
+					}
+					consoleCommandInput.setText(commandHistory.get(historyIndex));
+					e.consume();
+				} else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+					if (historyIndex >= commandHistory.size()) return;
+					historyIndex++;
+					if (historyIndex == commandHistory.size()) {
+						consoleCommandInput.setText(pendingText);
+					} else {
+						consoleCommandInput.setText(commandHistory.get(historyIndex));
+					}
+					e.consume();
+				}
+			}
 		});
 		consoleCommandInput.setColumns(10);
+
+		// Send button with vertically-centered "enter" symbol
+		JButton sendButton = new JButton("") {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				Graphics2D g2 = (Graphics2D) g.create();
+				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2.setFont(getFont());
+				g2.setColor(getForeground());
+				FontMetrics fm = g2.getFontMetrics();
+				String sym = "\u21B5";
+				int x = (getWidth() - fm.stringWidth(sym)) / 2;
+					int y = ((getHeight() + fm.getAscent() - fm.getDescent()) / 2) - 2;
+				g2.drawString(sym, x, y);
+				g2.dispose();
+			}
+		};
+		sendButton.setFont(sendButton.getFont().deriveFont(20f));
+		sendButton.setMargin(new Insets(0, 0, 0, 0));
+		sendButton.setPreferredSize(new java.awt.Dimension(26, 26));
+		sendButton.setMinimumSize(new java.awt.Dimension(26, 26));
+		sendButton.setMaximumSize(new java.awt.Dimension(26, 26));
+		sendButton.setToolTipText("Send command (Enter)");
+		sendButton.addActionListener(e -> sendCmd.run());
 
 		GroupLayout gl = new GroupLayout(this);
 		setLayout(gl);
@@ -132,6 +199,8 @@ public class ConsolePanel extends JPanel {
 				.addGroup(gl.createSequentialGroup()
 					.addGap(10)
 					.addComponent(consoleCommandInput, GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
+					.addGap(4)
+					.addComponent(sendButton, 26, 26, 26)
 					.addGap(10))
 				.addGroup(gl.createSequentialGroup()
 					.addContainerGap()
@@ -145,7 +214,9 @@ public class ConsolePanel extends JPanel {
 				.addGroup(gl.createSequentialGroup()
 					.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(consoleCommandInput, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
+					.addGroup(gl.createParallelGroup(Alignment.CENTER)
+						.addComponent(consoleCommandInput, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
+						.addComponent(sendButton, 26, 26, 26))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl.createParallelGroup(Alignment.BASELINE)
 						.addComponent(chkConsoleInputAsSay)
