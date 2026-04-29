@@ -33,6 +33,7 @@ public class Module {
 	
 	/**
 	 * Has bukkit been detected
+	 * 
 	 * @return If bukkit has been detected.
 	 */
 	public boolean isBukkit() {
@@ -44,11 +45,11 @@ public class Module {
 	 */
 	public void onConsolePrintRaw(String message) {
 		
-		if (message.split("INFO]: ").length>1) {
+		if (message.split("INFO]: ").length > 1) {
 			onConsolePrint(message.split("INFO]: ")[1]);
 		}
 		
-		if (message.split("INFO] ").length>1) {
+		if (message.split("INFO] ").length > 1) {
 			onConsolePrint(message.split("INFO] ")[1]);
 		}
 		
@@ -128,46 +129,56 @@ public class Module {
 	}
 
 	/**
-     * When the version has been detected.
+     * When a Vanilla version has been detected.
+	 * 
      * @param version The version string
      */
 	public void onVersionDetected(String version) {
-		// We don't really care about the version, we just need to know when it's detected
+		// We don't really care about the version right now, we just need to know when it's detected
 	}
 	
 	/**
-	 * When bukkit is detected.
-	 * @param version The version detected.
+	 * When a Bukkit version has been detected.
+	 * 
+	 * @param version The version string.
 	 */
 	public void onBukkitVersionDetected(String version) {
-		
-		if (version.toLowerCase().contains("spigot")) {
+		if (version != null && version.toLowerCase().contains("spigot")) {
 			serverType = ServerType.Spigot;
-		}else {
+		} else {
 			serverType = ServerType.Bukkit;
 		}
-		
 	}
 
+	/**
+	 * When a Paper version has been detected.
+	 * 
+	 * @param version The version string.
+	 */
 	public void onPaperVersionDetected(String version) {
 		serverType = ServerType.Paper;
 	}
 	
 	/**
-	 * When sponge is detected.
-	 * @param version The version detected.
+	 * When a Sponge version has been detected.
+	 * 
+	 * @param version The version string.
 	 */
 	public void onSpongeVersionDetected(String version) {
 		
 		if (version.equalsIgnoreCase("SpongeVanilla")) {
 			serverType = ServerType.SpongeVanilla;
-		}else if (version.equalsIgnoreCase("SpongeForge")) {
+		} else if (version.equalsIgnoreCase("SpongeForge")) {
 			serverType = ServerType.SpongeForge;
 		}
 		
 	}
 	
 	/**
+	 * When a chat message is printed to console. 
+	 * Note that this is not guaranteed to be perfectly accurate due to the variety of formats across server types and plugins, 
+	 * but it should work for basic messages from vanilla Minecraft and Bukkit/Spigot/Paper.
+	 * 
 	 * @param message Message Sent
 	 * @param player The Player that sent the message
 	 */
@@ -184,6 +195,10 @@ public class Module {
 	public void onServerInit() {}
 	
 	/**
+	 * When a command is sent to console by a player. 
+	 * Note that the player may be empty if the server doesn't provide it, and the message may 
+	 * be just the command without the leading slash.
+	 * 
 	 * @param message Command Sent
 	 * @param player The Player that Sent the Command
 	 * Bukkit and Spigot
@@ -192,6 +207,8 @@ public class Module {
 	
 	// [09:07:22 INFO]: JusticePro[/127.0.0.1:51536] logged in with entity id 208 at ([world]-134.42308268456057, 72.0, 212.69999998807907)
 	/**
+	 * When a player joins the server. Note that the IP may be empty if the server doesn't provide it.
+	 * 
 	 * @param player The Player that joined.
 	 * @param ip The ip of the player.
 	 */
@@ -199,12 +216,18 @@ public class Module {
 	
 	// [11:00:47 INFO]: JusticePro lost connection: We're Under Maintenance
 	/**
+	 * When a player leaves the server, either by disconnecting or being kicked. 
+	 * Note that the reason may be empty if the server doesn't provide one.
+	 * 
 	 * @param player The Player that left.
 	 * @param reason The reason of disconnect
 	 */
 	public void onPlayerLeave(String player, String reason) {}
 	
 	/**
+	 * Sends a command to the server console. Note that this may throw a ProcessException if the server 
+	 * process isn't available (e.g. before it's detected or after it closes).
+	 * 
 	 * @param command Command to Send
 	 * @throws ProcessException
 	 */
@@ -256,6 +279,7 @@ public class Module {
 
 	/**
 	 * Custom Panel for Main Window
+	 * 
 	 * @return The page for your module.
 	 */
 	public JModulePanel getPage() {
@@ -264,6 +288,7 @@ public class Module {
 	
 	/**
 	 * Custom Panel for Remote Admin Window
+	 * 
 	 * @param client The active client.
 	 * @return The remote admin page for your module.
 	 */
@@ -273,6 +298,7 @@ public class Module {
 	
 	/**
 	 * Custom Panel for Remote Admin Window
+	 * 
 	 * @return The server manager page for your module.
 	 */
 	public JModulePanel getRemoteManagePage() {
@@ -281,6 +307,7 @@ public class Module {
 	
 	/**
 	 * Registered Permissions
+	 * 
 	 * @return The registered permissions.
 	 */
 	public Permission[] getPermissions() {
