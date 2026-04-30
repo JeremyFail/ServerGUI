@@ -38,6 +38,8 @@ public final class BridgeClient {
 
     /** Callback fired when the server exits (STATUS STOPPED received). */
     private Runnable onServerStopped;
+    /** Callback fired when the server starts (STATUS RUNNING received after a previous STOPPED). */
+    private Runnable onServerStarted;
 
     public BridgeClient(String host, int port, String token) {
         this.host = host;
@@ -47,6 +49,10 @@ public final class BridgeClient {
 
     public void setOnServerStopped(Runnable r) {
         this.onServerStopped = r;
+    }
+
+    public void setOnServerStarted(Runnable r) {
+        this.onServerStarted = r;
     }
 
     /** @return true if currently connected and authenticated to the bridge. */
@@ -96,6 +102,9 @@ public final class BridgeClient {
      * @param reader the BufferedReader to read lines from the bridge
      */
     private void readLoop(BufferedReader reader) {
+        // Tracks whether we have ever received STATUS STOPPED, so we know a
+        // subsequent STATUS RUNNING is a relaunch rather than the initial state.
+        boolean everStopped = false;
         try {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -103,13 +112,17 @@ public final class BridgeClient {
                     String status = line.substring(7);
                     if ("RUNNING".equals(status)) {
                         serverRunning = true;
+                        // Only fire the started callback on a relaunch (not the initial STATUS RUNNING).
+                        if (everStopped && onServerStarted != null) {
+                            onServerStarted.run();
+                        }
                     } else if ("STOPPED".equals(status)) {
                         serverRunning = false;
-                        connected = false;
+                        everStopped = true;
                         if (onServerStopped != null) {
                             onServerStopped.run();
                         }
-                        break;
+                        // Stay connected — the bridge may relaunch the server.
                     }
                 } else if (line.startsWith("OUT ")) {
                     String consoleLine = line.substring(4);
@@ -145,6 +158,29 @@ public final class BridgeClient {
         if (w != null && connected) {
             w.println("CMD " + command);
         }
+    }
+
+    /**
+     * Asks the bridge to relaunch the server after it has stopped.
+     * The bridge will start a new server process; STATUS RUNNING will be received when ready.
+     */
+    public void sendRelaunch() {
+        PrintWriter w = writer;
+        if (w != null && connected) {
+            w.println("RELAUNCH");
+        }
+    }
+
+    /**
+     * Asks the bridge to exit cleanly. The bridge will delete the lock file and terminate.
+     * This client's read loop will end when the socket is closed by the bridge.
+     */
+    public void sendQuit() {
+        PrintWriter w = writer;
+        if (w != null && connected) {
+            w.println("QUIT");
+        }
+        connected = false;
     }
 
     /**

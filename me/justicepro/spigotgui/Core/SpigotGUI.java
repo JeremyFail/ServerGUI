@@ -1498,25 +1498,30 @@ public class SpigotGUI extends JFrame {
 			super.onServerClosed();
 
 			if (restart) {
-				try {
-					startServer();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				restart = false;
+				if (server != null && server.isBridgeConnected()) {
+					// The bridge is still running - ask it to relaunch the server directly.
+					// setActive(true) is called by the bridge client's onServerStarted callback
+					// once the server process is up. Show the offline state in the meantime.
+					try { setActive(false); } catch (IOException e) { e.printStackTrace(); }
+					server.relaunchViaBridge();
+				} else {
 					try {
-						setActive(false);
-					} catch (IOException e2) {
-						// TODO Auto-generated catch block
-						e2.printStackTrace();
+						startServer();
+					} catch (IOException e) {
+						e.printStackTrace();
+						try { setActive(false); } catch (IOException e2) { e2.printStackTrace(); }
 					}
 				}
-				restart = false;
-			}else {
+			} else {
 				setTitle("ServerGUI (" + versionTag + ")");
+				if (server != null && server.isBridgeConnected()) {
+					// Normal stop - tell the bridge to exit cleanly.
+					server.quitBridge();
+				}
 				try {
 					setActive(false);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

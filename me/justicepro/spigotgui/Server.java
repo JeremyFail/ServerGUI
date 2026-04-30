@@ -1,5 +1,6 @@
 package me.justicepro.spigotgui;
 
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -456,6 +457,28 @@ public class Server {
 	}
 
 	/**
+	 * Asks the bridge to relaunch the server after it has stopped.
+	 * The GUI will receive STATUS RUNNING (via onServerStarted) when the server is up again.
+	 */
+	public void relaunchViaBridge() {
+		if (bridgeClient != null) {
+			bridgeClient.sendRelaunch();
+		}
+	}
+
+	/**
+	 * Tells the bridge to exit cleanly. Clears the bridge reference so this Server reverts to
+	 * a stopped/unmanaged state.
+	 */
+	public void quitBridge() {
+		if (bridgeClient != null) {
+			bridgeClient.sendQuit();
+			bridgeClient = null;
+			bridgeLock = null;
+		}
+	}
+
+	/**
 	 * Connects to an already-running bridge process described by {@code lock}.
 	 * Fires {@link Module#onServerClosed()} via the client's stop callback.
 	 *
@@ -468,6 +491,13 @@ public class Server {
 			for (Module module : ModuleManager.modules) {
 				module.onServerClosed();
 			}
+		});
+		client.setOnServerStarted(() -> {
+			EventQueue.invokeLater(() -> {
+				try {
+					if (SpigotGUI.instance != null) SpigotGUI.instance.setActive(true);
+				} catch (IOException e) { e.printStackTrace(); }
+			});
 		});
 		try {
 			client.connect();
@@ -549,6 +579,13 @@ public class Server {
 			for (Module module : ModuleManager.modules) {
 				module.onServerClosed();
 			}
+		});
+		client.setOnServerStarted(() -> {
+			EventQueue.invokeLater(() -> {
+				try {
+					if (SpigotGUI.instance != null) SpigotGUI.instance.setActive(true);
+				} catch (IOException e) { e.printStackTrace(); }
+			});
 		});
 
 		// Retry connection briefly in case the bridge needs a bit more time.

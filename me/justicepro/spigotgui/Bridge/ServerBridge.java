@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -60,9 +61,14 @@ public final class ServerBridge {
     private volatile boolean serverRunning = false;
 
     private final CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
-    /** Rolling backlog of console lines sent to clients that connect after the server started. */
-    private final List<String> backlog = new ArrayList<>();
+    /** Rolling backlog of recent console lines replayed to late-connecting clients. */
+    private final ArrayDeque<String> backlog = new ArrayDeque<>();
     private final Object backlogLock = new Object();
+
+    /** Signalled by ClientHandler when RELAUNCH or QUIT is received. */
+    private final Object serverLock = new Object();
+    private volatile boolean relaunchRequested = false;
+    private volatile boolean quitRequested = false;
 
     private ServerBridge(String authToken, int listenPort, File serverJar, String[] serverArgs) {
         this.authToken = authToken;
@@ -100,10 +106,8 @@ public final class ServerBridge {
 
     private void run() {
         // Register shutdown hook - fires on normal termination but NOT on SIGKILL.
-        // Good enough for expected cases (ServerGUI gracefully exits, OS SIGTERM, etc.).
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             BridgeLockFile.delete(serverJar);
-            // If GUI disconnected and bridge is shutting down, try to stop server gracefully first.
             if (serverProcess != null && serverProcess.isAlive()) {
                 sendToServer("stop");
                 try { serverProcess.waitFor(); } catch (InterruptedException ignored) { }
@@ -115,23 +119,44 @@ public final class ServerBridge {
         acceptThread.setDaemon(true);
         acceptThread.start();
 
-        // Launch the Minecraft server and block until it exits.
-        try {
-            launchServer();
-        } catch (IOException e) {
-            System.err.println("[ServerGUI Bridge] Failed to launch server: " + e.getMessage());
+        // Main loop: launch server, then wait for RELAUNCH or QUIT between runs.
+        while (!quitRequested) {
+            try {
+                launchServer(); // blocks until server exits
+            } catch (IOException e) {
+                System.err.println("[ServerGUI Bridge] Failed to launch server: " + e.getMessage());
+                broadcast("STATUS STOPPED");
+                break;
+            }
+
+            serverRunning = false;
             broadcast("STATUS STOPPED");
-            BridgeLockFile.delete(serverJar);
-            return;
+
+            if (quitRequested) break;
+
+            // Wait for a RELAUNCH or QUIT command (or timeout if no clients are connected).
+            synchronized (serverLock) {
+                while (!relaunchRequested && !quitRequested) {
+                    try {
+                        serverLock.wait(60_000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        quitRequested = true;
+                        break;
+                    }
+                    // Time out if no clients are connected — bridge has been abandoned.
+                    if (!relaunchRequested && !quitRequested && clients.isEmpty()) {
+                        quitRequested = true;
+                        break;
+                    }
+                }
+                relaunchRequested = false;
+            }
         }
 
-        // Server exited - notify all clients.
-        serverRunning = false;
-        broadcast("STATUS STOPPED");
+        // Clean up: delete lock file and give connected clients a moment to read STATUS STOPPED.
         BridgeLockFile.delete(serverJar);
-
-        // Give clients a moment to receive the STOPPED message before the process exits.
-        try { Thread.sleep(2000); } catch (InterruptedException ignored) { }
+        try { Thread.sleep(1000); } catch (InterruptedException ignored) { }
     }
 
     // -------------------------------------------------------------------------
@@ -139,12 +164,17 @@ public final class ServerBridge {
     // -------------------------------------------------------------------------
 
     private void launchServer() throws IOException {
+        // Clear backlog from any previous run so reconnecting clients don't see stale output.
+        synchronized (backlogLock) { backlog.clear(); }
         List<String> cmd = buildServerCommand();
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.environment().put("TERM", "xterm-256color");
         pb.redirectErrorStream(true);
         serverProcess = pb.start();
         serverRunning = true;
+        // Notify all connected clients that the server is now running
+        // (important for relaunch so the GUI can update its status).
+        broadcast("STATUS RUNNING");
 
         // Drain stdout - relay every line to all connected clients and to the backlog.
         try (BufferedReader reader = new BufferedReader(
@@ -153,9 +183,9 @@ public final class ServerBridge {
             while ((line = reader.readLine()) != null) {
                 String msg = "OUT " + line;
                 synchronized (backlogLock) {
-                    backlog.add(msg);
+                    backlog.addLast(msg);
                     if (backlog.size() > BACKLOG_SIZE) {
-                        backlog.remove(0);
+                        backlog.removeFirst();
                     }
                 }
                 broadcast(msg);
@@ -240,7 +270,6 @@ public final class ServerBridge {
     private class ClientHandler implements Runnable {
         private final Socket socket;
         private PrintWriter writer;
-        private volatile boolean authenticated = false;
 
         ClientHandler(Socket socket) {
             this.socket = socket;
@@ -267,7 +296,6 @@ public final class ServerBridge {
                     pw.println("ERROR Invalid token");
                     return;
                 }
-                authenticated = true;
                 pw.println("OK");
 
                 // Send server status and recent backlog to help the client catch up.
@@ -281,8 +309,22 @@ public final class ServerBridge {
                 // Read commands from this client.
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (line.equals("DISCONNECT")) break;
-                    if (line.startsWith("CMD ")) {
+                    if (line.equals("DISCONNECT")) {
+                        break;
+                    } else if (line.equals("RELAUNCH")) {
+                        if (!serverRunning) {
+                            synchronized (serverLock) {
+                                relaunchRequested = true;
+                                serverLock.notifyAll();
+                            }
+                        }
+                    } else if (line.equals("QUIT")) {
+                        synchronized (serverLock) {
+                            quitRequested = true;
+                            serverLock.notifyAll();
+                        }
+                        break;
+                    } else if (line.startsWith("CMD ")) {
                         String command = line.substring(4);
                         sendToServer(command);
                     }
