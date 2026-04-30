@@ -1,8 +1,10 @@
 package me.justicepro.spigotgui;
 
 import java.awt.EventQueue;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
@@ -349,7 +351,7 @@ public class Server {
 		v = v.trim();
 		try {
 			if (v.startsWith("1.")) {
-				// Legacy format: "1.8.x" → 8, "1.7.x" → 7, etc.
+				// Legacy format: "1.8.x" -> 8, "1.7.x" -> 7, etc.
 				if (v.startsWith("1.8")) return 8;
 				String rest = v.substring(2);
 				int dot = rest.indexOf('.');
@@ -365,6 +367,12 @@ public class Server {
 
 	public void setStdinCharset(Charset charset) {
 		this.stdinCharset = charset != null ? charset : StandardCharsets.UTF_8;
+		// In bridge mode, forward the charset to the bridge process so it writes the server's
+		// stdin pipe with the correct encoding. (The GUI detects server type from console output
+		// at runtime; this overrides the bridge's JAR-name heuristic.)
+		if (bridgeClient != null) {
+			bridgeClient.sendStdinCharset(this.stdinCharset);
+		}
 	}
 
 	public Charset getStdinCharset() {
@@ -401,15 +409,36 @@ public class Server {
 	 * Only use this if the server is hung and won't respond to the "stop" command.
 	 */
 	public void kill() {
-		if (bridgeClient != null && bridgeLock != null) {
-			// Kill the Minecraft server process then the bridge process.
-			if (bridgeLock.serverPid > 0) killProcessByPid(bridgeLock.serverPid);
-			if (bridgeLock.bridgePid > 0) killProcessByPid(bridgeLock.bridgePid);
-			bridgeClient.disconnect();
+		if (bridgeClient != null) {
+			// Use the runtime PID reported by the bridge - the lock file value is -1
+			// because the lock is written before the server process starts.
+			long serverPid = bridgeClient.getServerPid();
+			if (serverPid < 0) {
+				SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.RED
+						+ "[Kill] Server PID not yet known - the server may still be starting. Try again in a moment."
+						+ ConsoleColor.RESET);
+				return;
+			}
+			String err = killProcessByPid(serverPid);
+			if (err != null) {
+				SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.RED
+						+ "[Kill] Failed to kill server process (PID " + serverPid + "): " + err
+						+ ConsoleColor.RESET);
+				// Leave the bridge connection intact - server is still running.
+				return;
+			}
+			// Kill succeeded. The bridge detects the server exit via stdout EOF and will
+			// broadcast STATUS STOPPED, which triggers the normal onServerClosed -> quitBridge
+			// flow. We deliberately leave the bridge alive so it can do this cleanly.
 			return;
 		}
 		if (adoptedPid >= 0) {
-			killProcessByPid(adoptedPid);
+			String err = killProcessByPid(adoptedPid);
+			if (err != null) {
+				SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.RED
+						+ "[Kill] Failed to kill server process (PID " + adoptedPid + "): " + err
+						+ ConsoleColor.RESET);
+			}
 			return;
 		}
 		if (process != null && process.isAlive()) {
@@ -417,16 +446,43 @@ public class Server {
 		}
 	}
 
-	/** Kills an arbitrary process by PID using the OS task-kill command. */
-	private static void killProcessByPid(long pid) {
+	/**
+	 * Kills an arbitrary process by PID using the OS task-kill command.
+	 * Waits for the command to complete.
+	 *
+	 * @return null on success, or a description of the error on failure
+	 */
+	private static String killProcessByPid(long pid) {
 		try {
+			ProcessBuilder pb;
 			String osName = System.getProperty("os.name", "").toLowerCase();
 			if (osName.contains("win")) {
-				new ProcessBuilder("taskkill", "/f", "/pid", String.valueOf(pid)).start();
+				pb = new ProcessBuilder("taskkill", "/f", "/pid", String.valueOf(pid));
 			} else {
-				new ProcessBuilder("kill", "-9", String.valueOf(pid)).start();
+				pb = new ProcessBuilder("kill", "-9", String.valueOf(pid));
 			}
-		} catch (IOException ignored) { }
+			pb.redirectErrorStream(true);
+			Process p = pb.start();
+			StringBuilder out = new StringBuilder();
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					if (out.length() > 0) out.append(' ');
+					out.append(line.trim());
+				}
+			}
+			int exitCode = p.waitFor();
+			if (exitCode != 0) {
+				String msg = out.toString().trim();
+				return msg.isEmpty() ? "exit code " + exitCode : msg;
+			}
+			return null;
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			return "interrupted";
+		} catch (IOException e) {
+			return e.getMessage();
+		}
 	}
 
 	/**

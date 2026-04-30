@@ -135,7 +135,7 @@ public enum Theme {
 
 	/**
 	 * Returns the resource name of the bundled editor color scheme for this theme
-	 * (e.g. {@code "dracula"} → {@code /editor-schemes/dracula.xml}), or {@code null}
+	 * (e.g. {@code "dracula"} -> {@code /editor-schemes/dracula.xml}), or {@code null}
 	 * if no specific scheme is available.  {@code null} causes {@link
 	 * me.justicepro.spigotgui.FileExplorer.EditorSchemeApplier} to auto-select a
 	 * generic dark or light palette based on {@code FlatLaf.isLafDark()}.

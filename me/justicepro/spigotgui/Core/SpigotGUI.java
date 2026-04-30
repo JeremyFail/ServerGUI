@@ -1006,7 +1006,7 @@ public class SpigotGUI extends JFrame {
 				double cos = Math.cos(endRad), sin = Math.sin(endRad);
 				double baseX = cx + rad * cos;
 				double baseY = cy + rad * sin;
-				double tx = -sin, ty = cos;  // tangent for CCW at 315° → down-right in Java
+				double tx = -sin, ty = cos;  // tangent for CCW at 315° -> down-right in Java
 				double tipLen = 5.5, halfBase = 3.5;
 				double tipX = baseX + tipLen * tx;
 				double tipY = baseY + tipLen * ty;
@@ -1552,12 +1552,12 @@ public class SpigotGUI extends JFrame {
 		public void onBukkitVersionDetected(String version) {
 			super.onBukkitVersionDetected(version);
 
-			// On Windows, Spigot/Bukkit's bundled jline2 reads stdin via Win32 native console
-			// APIs, decoding bytes with the OEM/ANSI code page regardless of -Dfile.encoding.
-			// Writing ISO-8859-1 makes § arrive as the single byte 0xA7 that jline2 expects.
-			// On Linux/Mac, jline2 detects the piped stdin is not a TTY and falls back to
-			// System.in with the JVM default charset, so -Dfile.encoding=UTF-8 works there.
-			// Paper uses jline3 on all platforms and reads UTF-8 correctly; it keeps the default.
+			// On Windows, Spigot/Bukkit's bundled jline2 reads the stdin pipe using the
+			// platform's ANSI/OEM codepage via Win32 native APIs, regardless of JVM flags.
+			// Writing ISO-8859-1 makes § arrive as byte 0xA7 which survives any Western codepage.
+			// In bridge mode, Server.setStdinCharset() forwards this to the bridge via the
+			// STDIN_CHARSET protocol message, overriding the bridge's JAR-name heuristic.
+			// Paper uses jline3 with explicit UTF-8 System.in; it keeps the default charset.
 			if (server != null && System.getProperty("os.name", "").toLowerCase().contains("win")) {
 				server.setStdinCharset(java.nio.charset.StandardCharsets.ISO_8859_1);
 			}

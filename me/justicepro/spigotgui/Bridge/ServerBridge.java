@@ -14,6 +14,7 @@ import java.security.SecureRandom;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -32,13 +33,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <p><b>Protocol</b> (plain text, UTF-8, line-delimited):
  * <pre>
- * GUI → Bridge   AUTH &lt;token&gt;\n          - first line; connection closed if wrong
- * Bridge → GUI   OK\n                      - auth accepted
- * Bridge → GUI   OUT &lt;console line&gt;\n     - a line of server console output
- * Bridge → GUI   STATUS RUNNING\n          - sent after auth to confirm server is up
- * Bridge → GUI   STATUS STOPPED\n          - sent when the server process exits
- * GUI → Bridge   CMD &lt;command text&gt;\n     - send a command to the server stdin
- * GUI → Bridge   DISCONNECT\n             - GUI is closing; bridge stays alive
+ * GUI -> Bridge   AUTH &lt;token&gt;\n          - first line; connection closed if wrong
+ * Bridge -> GUI   OK\n                      - auth accepted
+ * Bridge -> GUI   OUT &lt;console line&gt;\n     - a line of server console output
+ * Bridge -> GUI   STATUS RUNNING\n          - sent after auth to confirm server is up
+ * Bridge -> GUI   STATUS STOPPED\n          - sent when the server process exits
+ * GUI -> Bridge   CMD &lt;command text&gt;\n     - send a command to the server stdin
+ * GUI -> Bridge   DISCONNECT\n             - GUI is closing; bridge stays alive
  * </pre>
  *
  * <p>The bridge process is launched via:
@@ -55,10 +56,19 @@ public final class ServerBridge {
     private final int listenPort;
     private final File serverJar;
     private final String[] serverArgs; // everything after the JAR path
-    private Charset stdinCharset = StandardCharsets.UTF_8;
+    /**
+     * Charset used when writing commands to the server's stdin pipe.
+     * Defaults based on JAR name: Spigot/CraftBukkit use ISO-8859-1 because their bundled
+     * jline2 reads the pipe using the platform OEM/ANSI codepage (where § = 0xA7, same as
+     * Latin-1) regardless of -Dfile.encoding. Paper and other modern servers use UTF-8.
+     * Can be overridden at runtime via the STDIN_CHARSET protocol message.
+     */
+    private volatile Charset stdinCharset;
 
     private volatile Process serverProcess;
     private volatile boolean serverRunning = false;
+    /** PID of the running Minecraft server process; -1 when server is not running. */
+    private volatile long currentServerPid = -1;
 
     private final CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
     /** Rolling backlog of recent console lines replayed to late-connecting clients. */
@@ -75,6 +85,15 @@ public final class ServerBridge {
         this.listenPort = listenPort;
         this.serverJar = serverJar;
         this.serverArgs = serverArgs;
+        // On Windows, Spigot/CraftBukkit's bundled jline2 reads the stdin pipe using the
+        // platform's ANSI/OEM codepage via native Win32 APIs, regardless of any JVM flags.
+        // ISO-8859-1 encodes § as byte 0xA7, which survives intact through any Western codepage.
+        // Paper uses jline3 and reads System.in explicitly as UTF-8, so UTF-8 is correct there.
+        // The STDIN_CHARSET protocol message lets the GUI override this at runtime once it
+        // detects the actual server type from console output (covers custom-named JARs).
+        String jarLower = serverJar.getName().toLowerCase(Locale.ROOT);
+        boolean spigotLike = jarLower.contains("spigot") || jarLower.contains("craftbukkit");
+        this.stdinCharset = spigotLike ? StandardCharsets.ISO_8859_1 : StandardCharsets.UTF_8;
     }
 
     /**
@@ -130,6 +149,7 @@ public final class ServerBridge {
             }
 
             serverRunning = false;
+            currentServerPid = -1;
             broadcast("STATUS STOPPED");
 
             if (quitRequested) break;
@@ -144,7 +164,7 @@ public final class ServerBridge {
                         quitRequested = true;
                         break;
                     }
-                    // Time out if no clients are connected — bridge has been abandoned.
+                    // Time out if no clients are connected - bridge has been abandoned.
                     if (!relaunchRequested && !quitRequested && clients.isEmpty()) {
                         quitRequested = true;
                         break;
@@ -172,13 +192,13 @@ public final class ServerBridge {
         pb.redirectErrorStream(true);
         serverProcess = pb.start();
         serverRunning = true;
+        currentServerPid = me.justicepro.spigotgui.Utils.ProcessUtils.getPid(serverProcess);
         // Notify all connected clients that the server is now running
         // (important for relaunch so the GUI can update its status).
         broadcast("STATUS RUNNING");
         // Broadcast the server's PID so the GUI can find the process for resource monitoring.
-        long serverPid = me.justicepro.spigotgui.Utils.ProcessUtils.getPid(serverProcess);
-        if (serverPid >= 0) {
-            broadcast("PID " + serverPid);
+        if (currentServerPid >= 0) {
+            broadcast("PID " + currentServerPid);
         }
 
         // Drain stdout - relay every line to all connected clients and to the backlog.
@@ -217,6 +237,8 @@ public final class ServerBridge {
         cmd.add("-Dnet.kyori.ansi.colorLevel=truecolor");
         cmd.add("-Dfile.encoding=UTF-8");
         cmd.add("-Dstdout.encoding=UTF-8");
+        // Prevent jline2/jline3 from trying to use the Win32 console handle;
+        // the server's stdin is a pipe so Win32 console APIs would fail anyway.
         cmd.add("-Djline.terminal=jline.UnsupportedTerminal");
         cmd.add("-jar");
         cmd.add(serverJar.getAbsolutePath());
@@ -303,8 +325,11 @@ public final class ServerBridge {
                 }
                 pw.println("OK");
 
-                // Send server status and recent backlog to help the client catch up.
+                // Send server status and PID to help the client catch up.
                 pw.println(serverRunning ? "STATUS RUNNING" : "STATUS STOPPED");
+                if (serverRunning && currentServerPid >= 0) {
+                    pw.println("PID " + currentServerPid);
+                }
                 synchronized (backlogLock) {
                     for (String line : backlog) {
                         pw.println(line);
@@ -329,6 +354,13 @@ public final class ServerBridge {
                             serverLock.notifyAll();
                         }
                         break;
+                    } else if (line.startsWith("STDIN_CHARSET ")) {
+                        // GUI detected the actual server type from its console output and is
+                        // telling us which charset to use when writing to the server's stdin.
+                        String charsetName = line.substring(14).trim();
+                        try {
+                            stdinCharset = Charset.forName(charsetName);
+                        } catch (Exception ignored) { }
                     } else if (line.startsWith("CMD ")) {
                         String command = line.substring(4);
                         sendToServer(command);

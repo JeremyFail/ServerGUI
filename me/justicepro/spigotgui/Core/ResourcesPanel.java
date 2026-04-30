@@ -122,7 +122,7 @@ public class ResourcesPanel extends JPanel {
      * Find the server's Minecraft JVM process via OSHI.
      * <p>
      * <ol>Priority: 
-     * <li>PID from Server.getServerPid() — works for bridge, adopted, and direct modes;</li>
+     * <li>PID from Server.getServerPid() - works for bridge, adopted, and direct modes;</li>
      * <li>direct process handle PID (Java 9+ path);</li>
      * <li>fall back to searching all Java processes by JAR path (last resort).</li>
      * </ol>

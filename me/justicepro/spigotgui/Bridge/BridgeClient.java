@@ -130,7 +130,7 @@ public final class BridgeClient {
                         if (onServerStopped != null) {
                             onServerStopped.run();
                         }
-                        // Stay connected — the bridge may relaunch the server.
+                        // Stay connected - the bridge may relaunch the server.
                     }
                 } else if (line.startsWith("PID ")) {
                     try {
@@ -180,6 +180,20 @@ public final class BridgeClient {
         PrintWriter w = writer;
         if (w != null && connected) {
             w.println("RELAUNCH");
+        }
+    }
+
+    /**
+     * Tells the bridge which charset to use when writing to the server's stdin pipe.
+     * Called when the GUI detects the actual server type from console output at runtime,
+     * overriding the bridge's JAR-name heuristic.
+     *
+     * @param charset the charset to use (e.g. {@code StandardCharsets.ISO_8859_1} for Spigot/CraftBukkit)
+     */
+    public void sendStdinCharset(java.nio.charset.Charset charset) {
+        PrintWriter w = writer;
+        if (w != null && connected) {
+            w.println("STDIN_CHARSET " + charset.name());
         }
     }
 
