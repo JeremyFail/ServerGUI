@@ -247,7 +247,7 @@ public class SpigotGUI extends JFrame {
 
 				if (server!=null) {
 					if (server.isRunning()) {
-						JOptionPane.showMessageDialog(null, "A Server is running, you can't close this program unless you stop it.");
+						JOptionPane.showMessageDialog(SpigotGUI.this, "A Server is running, you can't close ServerGUI until you stop it.");
 						close = false;
 					}
 				}
@@ -303,7 +303,7 @@ public class SpigotGUI extends JFrame {
 				if (server != null) {
 
 					if (server.isRunning()) {
-						JOptionPane.showMessageDialog(null, "A Server is already running.");
+						JOptionPane.showMessageDialog(SpigotGUI.this, "A Server is already running.");
 					}else {
 						try {
 							startServer();
@@ -647,13 +647,13 @@ public class SpigotGUI extends JFrame {
 
 		if (!eula.exists()) {
 
-			int result = JOptionPane.showOptionDialog(null,
+			int result = JOptionPane.showOptionDialog(SpigotGUI.this,
 					"Do you agree to the Minecraft Eula? (https://account.mojang.com/documents/minecraft_eula)", "Message", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
 			if (result==JOptionPane.YES_OPTION) {
 				Files.copy(getClass().getResourceAsStream("/eula.txt"), eula.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			}else {
-				JOptionPane.showMessageDialog(null, "You must agree to the eula to run a server.");
+				JOptionPane.showMessageDialog(SpigotGUI.this, "You must agree to the EULA to run a server.");
 				return;
 			}
 
@@ -666,14 +666,14 @@ public class SpigotGUI extends JFrame {
 			if (file.exists()) {
 				jarFile = file;
 			}else {
-				JOptionPane.showMessageDialog(null, "There is no selected jar file. Look at Server Settings.");
+				JOptionPane.showMessageDialog(SpigotGUI.this, "There is no selected Server JAR file. Check your Settings and try again.");
 				return;
 			}
 
 		}
 
 		if (!jarFile.exists()) {
-			JOptionPane.showMessageDialog(null, "The selected jar file does not exist.");
+			JOptionPane.showMessageDialog(SpigotGUI.this, "The selected Server JAR file does not exist.");
 			return;
 		}
 
