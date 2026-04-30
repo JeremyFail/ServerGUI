@@ -71,6 +71,7 @@ import me.justicepro.spigotgui.Server;
 import me.justicepro.spigotgui.ServerSettings;
 import me.justicepro.spigotgui.Settings;
 import me.justicepro.spigotgui.Theme;
+import me.justicepro.spigotgui.Bridge.BridgeLockFile;
 import me.justicepro.spigotgui.FileExplorer.FileModel;
 import me.justicepro.spigotgui.RemoteAdmin.CorePermissions;
 import me.justicepro.spigotgui.RemoteAdmin.Permission;
@@ -171,6 +172,12 @@ public class SpigotGUI extends JFrame {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
+		// Delegate to bridge process if launched with --bridge flag.
+		if (args.length > 0 && "--bridge".equals(args[0])) {
+			me.justicepro.spigotgui.Bridge.ServerBridge.main(args);
+			return;
+		}
+
 		// Global handler: any thread that throws an uncaught exception gets its stack
 		// trace printed to the GUI console (and to stderr as a fallback).
 		Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -202,6 +209,7 @@ public class SpigotGUI extends JFrame {
 					}
 					instance = new SpigotGUI(settings);
 					instance.setVisible(true);
+					instance.checkForOrphanedServerOnStartup();
 				} catch (Exception e) {
 					ReporterWindow reporter = new ReporterWindow(e);
 					reporter.setVisible(true);
@@ -332,7 +340,15 @@ public class SpigotGUI extends JFrame {
 
 				if (server != null) {
 					if (server.isRunning()) {
-						runShutdownOrRestartCountdown(getShutdownCountdownSeconds(), false);
+						if (server.isAdopted()) {
+							JOptionPane.showMessageDialog(SpigotGUI.this,
+									"<html>This server was not started by ServerGUI - graceful stop (stdin) is not available.<br>"
+									+ "Use <b>Kill Server</b> to forcefully terminate the process.</html>",
+									"Cannot Stop Gracefully",
+									JOptionPane.WARNING_MESSAGE);
+						} else {
+							runShutdownOrRestartCountdown(getShutdownCountdownSeconds(), false);
+						}
 					} else {
 						JOptionPane.showMessageDialog(SpigotGUI.this, "There are no servers running.");
 					}
@@ -360,7 +376,15 @@ public class SpigotGUI extends JFrame {
 
 				if (server != null) {
 					if (server.isRunning()) {
-						runShutdownOrRestartCountdown(getShutdownCountdownSeconds(), true);
+						if (server.isAdopted()) {
+							JOptionPane.showMessageDialog(SpigotGUI.this,
+									"<html>This server was not started by ServerGUI - graceful restart is not available.<br>"
+									+ "Use <b>Kill Server</b> to terminate it, then start a new server.</html>",
+									"Cannot Restart",
+									JOptionPane.WARNING_MESSAGE);
+						} else {
+							runShutdownOrRestartCountdown(getShutdownCountdownSeconds(), true);
+						}
 					} else {
 						JOptionPane.showMessageDialog(SpigotGUI.this, "There are no servers running.");
 					}
@@ -632,6 +656,125 @@ public class SpigotGUI extends JFrame {
 		return t.isEmpty() ? "nogui" : "nogui " + t;
 	}
 
+	/**
+	 * Checks on startup whether a bridge lock file or orphaned server process exists for the
+	 * configured JAR, and prompts the user to reconnect or handle accordingly.
+	 * Runs the OSHI probe off the EDT to avoid a startup freeze.
+	 */
+	private void checkForOrphanedServerOnStartup() {
+		if (jarFile == null) return;
+		if (server != null && server.isRunning()) return;
+		final File jar = jarFile;
+		new Thread(() -> {
+			// Priority 1: a bridge lock file exists - try to reconnect to the bridge.
+			BridgeLockFile lock = BridgeLockFile.read(jar);
+			if (lock != null) {
+				boolean bridgeAlive = Server.isProcessAlive(lock.bridgePid);
+				if (bridgeAlive) {
+					SwingUtilities.invokeLater(() -> promptToReconnectBridge(lock));
+					return;
+				}
+				// Bridge is gone - delete the stale lock file.
+				BridgeLockFile.delete(jar);
+			}
+
+			// Priority 2: no bridge, but the server JAR is still running as an orphan.
+			long pid = Server.findOrphanedPid(jar);
+			if (pid >= 0) {
+				SwingUtilities.invokeLater(() -> promptOrphanServerNoBridge(pid));
+			}
+		}).start();
+	}
+
+	/** Prompts the user to reconnect to a running bridge process. */
+	private void promptToReconnectBridge(BridgeLockFile lock) {
+		if (server != null && server.isRunning()) return;
+		int choice = JOptionPane.showConfirmDialog(
+				this,
+				"<html>ServerGUI found a running server (PID: " + lock.bridgePid + ") "
+				+ "with the JAR <b>" + jarFile.getName() + "</b>.<br><br>"
+				+ "Do you want to reconnect?<br>"
+				+ "Full console interaction and graceful stop will be available.</html>",
+				"Reconnect to Running Server?",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+		if (choice != JOptionPane.YES_OPTION) return;
+
+		String args = settingsPanel != null ? settingsPanel.getCustomJvmArgsField().getText().trim() : "";
+		String switches = settingsPanel != null
+				? Server.makeMemory(settingsPanel.getMinRam().getValue() + "M", settingsPanel.getMaxRam().getValue() + "M")
+					+ " " + settingsPanel.getCustomJvmSwitchesField().getText()
+				: "";
+		String jvmPath = settingsPanel != null ? settingsPanel.getCustomJvmPath() : null;
+
+		Server s = Server.connectViaBridge(lock, jarFile, noguiArgs(args), switches, jvmPath);
+		if (s == null) {
+			JOptionPane.showMessageDialog(this,
+					"<html>Could not connect to the server.<br>"
+					+ "It may have already closed.</html>",
+					"Reconnect Failed", JOptionPane.WARNING_MESSAGE);
+			BridgeLockFile.delete(jarFile);
+			return;
+		}
+		server = s;
+		try { setActive(true); } catch (IOException e) { e.printStackTrace(); }
+		addToConsole(getPrefix() + ConsoleColor.YELLOW
+				+ "Reconnected to server (PID: " + lock.bridgePid + "). Full console interaction and graceful stop are available."
+				+ ConsoleColor.RESET);
+	}
+
+	/**
+	 * Called when a server process is detected without a bridge. Offers only Kill as an option
+	 * since we have no way to communicate with the server gracefully.
+	 */
+	private void promptOrphanServerNoBridge(long pid) {
+		if (server != null && server.isRunning()) return;
+		Object[] options = {"Kill Server", "Ignore"};
+		int choice = JOptionPane.showOptionDialog(
+				this,
+				"<html>A server process running <b>" + jarFile.getName() + "</b> was detected (PID: " + pid + "),<br>"
+				+ "but cannot be fully reconnected.<br><br>"
+				+ "<b>Due to this, graceful shutdown is not possible.</b><br>"
+				+ "The only available option is to forcefully kill the server,<br>"
+				+ "which may cause world data loss or corruption.<br>"
+				+ "If possible, you may wish to <code>/stop</code> the server in-game.<br><br>"
+				+ "Kill the server now, or ignore?</html>",
+				"Orphaned Server - Cannot Reconnect",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE,
+				null, options, options[1]);
+		if (choice == 0) {
+			adoptOrphanedServer(pid);
+			server.kill();
+		}
+	}
+
+	/**
+	 * Adopts an already-running server process by PID, wires it into the GUI,
+	 * starts a monitor thread, and logs a notice to the console.
+	 */
+	private void adoptOrphanedServer(long pid) {
+		String args = settingsPanel != null ? settingsPanel.getCustomJvmArgsField().getText().trim() : "";
+		String switches = settingsPanel != null
+				? Server.makeMemory(settingsPanel.getMinRam().getValue() + "M", settingsPanel.getMaxRam().getValue() + "M")
+					+ " " + settingsPanel.getCustomJvmSwitchesField().getText()
+				: "";
+		String jvmPath = settingsPanel != null ? settingsPanel.getCustomJvmPath() : null;
+		server = Server.adoptOrphanedProcess(pid, jarFile, noguiArgs(args), switches, jvmPath);
+		server.startAdoptedMonitorThread();
+		try {
+			setActive(true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		addToConsole(getPrefix() + ConsoleColor.YELLOW
+				+ "Connected to existing server process (PID: " + pid + ")."
+				+ ConsoleColor.RESET);
+		addToConsole(getPrefix() + ConsoleColor.RED
+				+ "Console interaction is not available. Use 'Kill Server' to terminate the server. You may need to enable 'Display Kill Button' in Settings to see the button."
+				+ ConsoleColor.RESET);
+	}
+
 	public void startServer() throws IOException {
 		startServer(settingsPanel.getCustomJvmArgsField().getText().trim(), Server.makeMemory(settingsPanel.getMinRam().getValue() + "M", settingsPanel.getMaxRam().getValue() + "M") + " " + settingsPanel.getCustomJvmSwitchesField().getText());
 	}
@@ -677,33 +820,111 @@ public class SpigotGUI extends JFrame {
 			return;
 		}
 
-		if (server != null) {
+		// Check if a bridge is already running for this JAR.
+		BridgeLockFile existingLock = BridgeLockFile.read(jarFile);
+		if (existingLock != null && Server.isProcessAlive(existingLock.bridgePid)) {
+			int choice = JOptionPane.showConfirmDialog(
+					SpigotGUI.this,
+					"<html>A server with process (PID: " + existingLock.bridgePid + ") for the JAR file <b>"
+					+ jarFile.getName() + "</b> is already running.<br><br>"
+					+ "Do you want to reconnect to it?</html>",
+					"Server Already Running - Reconnect?",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+			if (choice == JOptionPane.YES_OPTION) {
+				promptToReconnectBridge(existingLock);
+				return;
+			}
+			return; // Don't start a second instance
+		}
+		if (existingLock != null) {
+			BridgeLockFile.delete(jarFile); // stale lock
+		}
 
+		// Check if this JAR is running without a bridge (orphaned).
+		long existingPid = Server.findOrphanedPid(jarFile);
+		if (existingPid >= 0) {
+			promptOrphanServerNoBridge(existingPid);
+			return;
+		}
+
+		// Launch via bridge.
+		File selfJar = resolveSelfJar();
+		if (selfJar == null) {
+			// Fallback: no self-JAR found (e.g. running from IDE). Use direct launch.
+			addToConsole(getPrefix() + ConsoleColor.YELLOW
+					+ "Running from IDE/classpath - Using direct launch."
+					+ ConsoleColor.RESET);
+			launchServerDirect(args, switches);
+			return;
+		}
+
+		String javaExe = resolveJavaExeForBridge();
+		try {
+			server = Server.startViaBridge(javaExe, selfJar, jarFile, noguiArgs(args), switches,
+					settingsPanel != null ? settingsPanel.getCustomJvmPath() : null);
+			setActive(true);
+			addToConsole(getPrefix() + ConsoleColor.YELLOW
+					+ "Server started. Console interaction and graceful stop are available."
+					+ ConsoleColor.RESET);
+		} catch (IOException e) {
+			addToConsole(getPrefix() + ConsoleColor.RED
+					+ "Failed to start server via bridge: " + e.getMessage()
+					+ " - falling back to direct launch." + ConsoleColor.RESET);
+			launchServerDirect(args, switches);
+		}
+
+	}
+
+	/** Direct (non-bridge) server launch - legacy path used as fallback when running from IDE. */
+	private void launchServerDirect(String args, String switches) throws IOException {
+		if (server != null) {
 			if (!server.isRunning()) {
 				server = new Server(jarFile, noguiArgs(args), switches, settingsPanel.getCustomJvmPath());
 				try {
 					server.start();
 				} catch (IOException | ProcessException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				setActive(true);
-			}else {
-				System.out.println("Server is Running");
 			}
-
-		}else {
+		} else {
 			server = new Server(jarFile, noguiArgs(args), switches, settingsPanel.getCustomJvmPath());
 			try {
 				server.start();
 			} catch (IOException | ProcessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			setActive(true);
 		}
-
 	}
+
+	/**
+	 * Resolves the running ServerGUI JAR file so the bridge process can be launched.
+	 * Returns null when running from a classpath (IDE / tests).
+	 */
+	private File resolveSelfJar() {
+		try {
+			java.net.URL location = SpigotGUI.class.getProtectionDomain().getCodeSource().getLocation();
+			if (location == null) return null;
+			File f = new File(location.toURI());
+			if (f.isFile() && f.getName().endsWith(".jar")) return f;
+		} catch (Exception ignored) { }
+		return null;
+	}
+
+	/** Resolves the java executable to use for launching the bridge process. */
+	private String resolveJavaExeForBridge() {
+		String home = System.getProperty("java.home");
+		if (home != null) {
+			File win = new File(home, "bin/java.exe");
+			if (win.isFile()) return win.getAbsolutePath();
+			File nix = new File(home, "bin/java");
+			if (nix.isFile()) return nix.getAbsolutePath();
+		}
+		return "java";
+	}
+
 
 	public void setActive(boolean active) throws IOException {
 
@@ -944,7 +1165,7 @@ public class SpigotGUI extends JFrame {
 
 	/**
 	 * Logs a throwable (with full cause chain and stack traces) to both stderr and
-	 * the GUI console. Safe to call at any time — if the console isn't ready the
+	 * the GUI console. Safe to call at any time - if the console isn't ready the
 	 * output is buffered and shown once the UI initialises.
 	 *
 	 * @param context  short description of what was happening (e.g. "Uncaught exception in thread \"foo\"")
