@@ -995,18 +995,18 @@ public class SpigotGUI extends JFrame {
 				int cx = x + size / 2, cy = y + size / 2;
 				int rad = size / 2 - 2;
 				if (rad < 4) rad = 4;
-				// Arc like Edge: starts upper-right (35°), runs CCW to top-right (315°) - gap at top
+				// Arc like Edge: starts upper-right (35 degrees), runs CCW to top-right (315 degrees) - gap at top
 				Arc2D arc = new Arc2D.Float(cx - rad, cy - rad, rad * 2, rad * 2, 35, 280, Arc2D.OPEN);
 				java.awt.Stroke old = g2.getStroke();
 				g2.setStroke(new java.awt.BasicStroke(2f));
 				g2.draw(arc);
 				g2.setStroke(old);
-				// Arrow at end of arc (315° = top-right), tip pointing down-right (tangent direction)
+				// Arrow at end of arc (315 degrees = top-right), tip pointing down-right (tangent direction)
 				double endRad = Math.toRadians(315);
 				double cos = Math.cos(endRad), sin = Math.sin(endRad);
 				double baseX = cx + rad * cos;
 				double baseY = cy + rad * sin;
-				double tx = -sin, ty = cos;  // tangent for CCW at 315° -> down-right in Java
+				double tx = -sin, ty = cos;  // tangent for CCW at 315 degrees -> down-right in Java
 				double tipLen = 5.5, halfBase = 3.5;
 				double tipX = baseX + tipLen * tx;
 				double tipY = baseY + tipLen * ty;
