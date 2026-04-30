@@ -12,7 +12,6 @@ import java.util.List;
 
 import me.justicepro.spigotgui.Server;
 import me.justicepro.spigotgui.ServerSettings;
-import me.justicepro.spigotgui.Utils.ProcessUtils;
 
 /**
  * Tab panel that shows server process resource usage: memory graph, memory stats,
@@ -120,29 +119,34 @@ public class ResourcesPanel extends JPanel {
     }
 
     /**
-     * Find the server's Java process: prefer the process handle from Server (the JVM we started);
-     * resolve it via OSHI. If that fails, search all processes for java running our jar.
+     * Find the server's Minecraft JVM process via OSHI.
+     * <p>
+     * <ol>Priority: 
+     * <li>PID from Server.getServerPid() — works for bridge, adopted, and direct modes;</li>
+     * <li>direct process handle PID (Java 9+ path);</li>
+     * <li>fall back to searching all Java processes by JAR path (last resort).</li>
+     * </ol>
+     * </p>
+     * <p>
+     * In bridge mode the bridge's own process is excluded automatically because we use the
+     * server PID reported by the bridge, not a command-line substring scan.
+     * </p>
      */
     private OSProcess findServerProcess(Server currentServer) {
-        Process serverProc = currentServer.getProcess();
-        if (serverProc == null) return null;
-
-        long serverPid = ProcessUtils.getPid(serverProc);
-        if (serverPid >= 0) {
+        // Primary: use the precise PID the server reports.
+        long pid = currentServer.getServerPid();
+        if (pid >= 0) {
             try {
                 for (OSProcess p : os.getProcesses()) {
-                    if (p != null && p.getProcessID() == serverPid) return p;
+                    if (p != null && p.getProcessID() == (int) pid) return p;
                 }
-            } catch (Exception ignored) {
-            }
-            try {
-                List<OSProcess> children = os.getChildProcesses((int) serverPid, null, null, 10);
-                OSProcess p = pickJavaProcess(children);
-                if (p != null) return p;
             } catch (Exception ignored) {
             }
         }
 
+        // Fallback for direct mode when getServerPid() fails (Java 8 + Windows):
+        // search all Java processes whose command line contains the server JAR path,
+        // but skip any process whose command line also contains "--bridge" (that's us).
         try {
             int currentPid = os.getProcessId();
             List<OSProcess> all = os.getProcesses();
@@ -153,28 +157,12 @@ public class ResourcesPanel extends JPanel {
                 String lower = name.toLowerCase();
                 if (!lower.contains("java") && !lower.endsWith("java.exe")) continue;
                 String cmd = p.getCommandLine();
-                if (serverJarPath != null && cmd != null && cmd.contains(serverJarPath)) return p;
-            }
-            for (OSProcess p : all) {
-                if (p == null || p.getState() == OSProcess.State.INVALID || p.getProcessID() == currentPid) continue;
-                String name = p.getName();
-                if (name != null && (name.toLowerCase().contains("java") || name.toLowerCase().endsWith("java.exe"))) return p;
+                if (cmd == null) continue;
+                if (serverJarPath != null && cmd.contains(serverJarPath) && !cmd.contains("--bridge")) return p;
             }
         } catch (Exception ignored) {
         }
         return null;
-    }
-
-    private static OSProcess pickJavaProcess(List<OSProcess> children) {
-        if (children == null) return null;
-        for (OSProcess p : children) {
-            if (p == null || p.getState() == OSProcess.State.INVALID) continue;
-            String name = p.getName();
-            if (name != null && (name.toLowerCase().contains("java") || name.toLowerCase().endsWith("java.exe"))) {
-                return p;
-            }
-        }
-        return children.isEmpty() ? null : children.get(0);
     }
 
     private static int toIntMb(Object ram) {

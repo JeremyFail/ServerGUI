@@ -175,6 +175,11 @@ public final class ServerBridge {
         // Notify all connected clients that the server is now running
         // (important for relaunch so the GUI can update its status).
         broadcast("STATUS RUNNING");
+        // Broadcast the server's PID so the GUI can find the process for resource monitoring.
+        long serverPid = me.justicepro.spigotgui.Utils.ProcessUtils.getPid(serverProcess);
+        if (serverPid >= 0) {
+            broadcast("PID " + serverPid);
+        }
 
         // Drain stdout - relay every line to all connected clients and to the backlog.
         try (BufferedReader reader = new BufferedReader(

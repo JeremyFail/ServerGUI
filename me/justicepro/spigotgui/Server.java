@@ -18,6 +18,7 @@ import me.justicepro.spigotgui.Bridge.BridgeLockFile;
 import me.justicepro.spigotgui.Bridge.ServerBridge;
 import me.justicepro.spigotgui.Core.SpigotGUI;
 import me.justicepro.spigotgui.Utils.ConsoleColor;
+import me.justicepro.spigotgui.Utils.ProcessUtils;
 
 public class Server {
 	
@@ -447,6 +448,17 @@ public class Server {
 	}
 
 	/**
+	 * Returns the PID of the actual Minecraft server JVM.
+	 * In bridge mode returns the PID reported by the bridge; in adopted mode returns the adopted PID;
+	 * in direct mode returns the PID of the launched Process.
+	 */
+	public long getServerPid() {
+		if (bridgeClient != null) return bridgeClient.getServerPid();
+		if (adoptedPid >= 0) return adoptedPid;
+		return ProcessUtils.getPid(process);
+	}
+
+	/**
 	 * Tells the bridge client the GUI is going away (e.g. on app close) but the server should
 	 * keep running. The bridge process continues; a future ServerGUI session can reconnect.
 	 */
@@ -562,7 +574,7 @@ public class Server {
 		Process bridgeProcess = pb.start();
 
 		// Get the bridge PID for the lock file (best-effort; -1 on Java 8 Windows if unavailable).
-		long bridgePid = me.justicepro.spigotgui.Utils.ProcessUtils.getPid(bridgeProcess);
+		long bridgePid = ProcessUtils.getPid(bridgeProcess);
 
 		// Give the bridge a moment to start listening before we connect.
 		try { Thread.sleep(800); } catch (InterruptedException ignored) { }

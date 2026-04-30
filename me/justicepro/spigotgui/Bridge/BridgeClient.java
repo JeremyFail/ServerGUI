@@ -35,6 +35,8 @@ public final class BridgeClient {
     private volatile PrintWriter writer;
     private volatile boolean connected = false;
     private volatile boolean serverRunning = false;
+    /** PID of the actual Minecraft server process, as reported by the bridge. -1 = unknown. */
+    private volatile long serverPid = -1;
 
     /** Callback fired when the server exits (STATUS STOPPED received). */
     private Runnable onServerStopped;
@@ -63,6 +65,11 @@ public final class BridgeClient {
     /** @return true if the bridge has reported that the server is running. */
     public boolean isServerRunning() {
         return serverRunning;
+    }
+
+    /** @return the PID of the Minecraft server process as reported by the bridge, or -1 if not yet known. */
+    public long getServerPid() {
+        return serverPid;
     }
 
     /**
@@ -118,12 +125,17 @@ public final class BridgeClient {
                         }
                     } else if ("STOPPED".equals(status)) {
                         serverRunning = false;
+                        serverPid = -1;
                         everStopped = true;
                         if (onServerStopped != null) {
                             onServerStopped.run();
                         }
                         // Stay connected — the bridge may relaunch the server.
                     }
+                } else if (line.startsWith("PID ")) {
+                    try {
+                        serverPid = Long.parseLong(line.substring(4).trim());
+                    } catch (NumberFormatException ignored) { }
                 } else if (line.startsWith("OUT ")) {
                     String consoleLine = line.substring(4);
                     // Fire module hooks just like the normal server thread does.
