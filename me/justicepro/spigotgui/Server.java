@@ -44,8 +44,6 @@ public class Server {
 
 	/** Active bridge connection; non-null when this server is managed via the bridge process. */
 	private BridgeClient bridgeClient;
-	/** Lock-file data for the active bridge session; non-null when bridge-connected. */
-	private BridgeLockFile bridgeLock;
 
 	private Process process;
 	
@@ -542,7 +540,6 @@ public class Server {
 		if (bridgeClient != null) {
 			bridgeClient.sendQuit();
 			bridgeClient = null;
-			bridgeLock = null;
 		}
 	}
 
@@ -573,7 +570,6 @@ public class Server {
 			return null; // bridge gone
 		}
 		s.bridgeClient = client;
-		s.bridgeLock = lock;
 		return s;
 	}
 
@@ -675,7 +671,6 @@ public class Server {
 		}
 
 		s.bridgeClient = client;
-		s.bridgeLock   = lock;
 		return s;
 	}
 
