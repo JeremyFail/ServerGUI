@@ -64,7 +64,7 @@ public class SettingsIO {
         if (jsonFile.exists()) {
             Settings s = tryLoadJson(jsonFile);
             if (s != null) return s;
-            // File exists but is corrupt — start fresh and overwrite
+            // File exists but is corrupt - start fresh and overwrite
             System.err.println("[ServerGUI] servergui.settings.json could not be parsed; using defaults.");
             SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.RED + "servergui.settings.json could not be parsed; using defaults." + ConsoleColor.RESET);
             Settings defaults = defaultSettings();
@@ -72,7 +72,7 @@ public class SettingsIO {
             return defaults;
         }
 
-        // No JSON yet — attempt one-time migration from the first readable legacy binary file
+        // No JSON yet - attempt one-time migration from the first readable legacy binary file
         for (String name : LEGACY_FILES) {
             File legacy = new File(name);
             if (!legacy.exists()) continue;
@@ -92,7 +92,7 @@ public class SettingsIO {
             return migrated;
         }
 
-        // Nothing found — write and return factory defaults
+        // Nothing found - write and return factory defaults
         Settings defaults = defaultSettings();
         save(defaults);
         return defaults;

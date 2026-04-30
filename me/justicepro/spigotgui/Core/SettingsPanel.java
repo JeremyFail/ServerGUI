@@ -527,7 +527,7 @@ public class SettingsPanel extends JPanel {
 		// against an off-screen default graphics context that may not reflect the actual display
 		// DPI. This is the same root cause as the "toggle theme to fix layout" workaround.
 		// Calling updateComponentTreeUI once after the panel is first shown reinstalls all UI
-		// delegates using the real screen graphics context — identical to what theme-switching does.
+		// delegates using the real screen graphics context - identical to what theme-switching does.
 		addHierarchyListener(new HierarchyListener() {
 			private boolean corrected = false;
 			@Override

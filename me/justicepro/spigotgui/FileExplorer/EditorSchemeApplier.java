@@ -67,7 +67,7 @@ public class EditorSchemeApplier {
 
     /**
      * Holds every color value parsed from a single scheme XML file.
-     * All fields are nullable — callers fall back to UIManager or skip the
+     * All fields are nullable - callers fall back to UIManager or skip the
      * property entirely when a value is absent.
      */
     private static class SchemeColors {

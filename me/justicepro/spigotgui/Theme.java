@@ -107,7 +107,7 @@ public enum Theme {
 		this(name, lookAndFeel, platform, true, null);
 	}
 
-	/** Used for legacy (hidden) entries — shownInUI=false, editorScheme=null. */
+	/** Used for legacy (hidden) entries - shownInUI=false, editorScheme=null. */
 	private Theme(String name, String lookAndFeel, Platform platform, boolean shownInUI) {
 		this(name, lookAndFeel, platform, shownInUI, null);
 	}
