@@ -15,6 +15,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -106,6 +108,12 @@ public class FileEditor extends JFrame {
 	private FindBar findBar;
 
 	private File openedFile;
+	/** Last-known modification timestamp of the open file (ms). Used to detect external changes. */
+	private long lastKnownModified = 0L;
+	/** Guards against stacking multiple "file changed" dialogs at once. */
+	private boolean checkingExternalChange = false;
+	/** Polls for external file changes while this window has focus. */
+	private final javax.swing.Timer fileWatchTimer = new javax.swing.Timer(3000, ev -> checkForExternalChanges());
 
 	public FileEditor() {
 		setIconImages(AppIcons.getIcons());
@@ -118,6 +126,17 @@ public class FileEditor extends JFrame {
 				if (!promptSaveIfDirty()) return;
 				openEditors.remove(FileEditor.this);
 				dispose();
+			}
+		});
+		addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+			@Override
+			public void windowGainedFocus(WindowEvent e) {
+				checkForExternalChanges();
+				fileWatchTimer.start();
+			}
+			@Override
+			public void windowLostFocus(WindowEvent e) {
+				fileWatchTimer.stop();
 			}
 		});
 		setBounds(100, 100, 663, 567);
@@ -273,6 +292,45 @@ public class FileEditor extends JFrame {
 		});
 		timer.setRepeats(true);
 		timer.start();
+
+		// Periodic fallback: detect external file changes while the window has focus.
+		// Timer starts/stops with window focus via the WindowFocusListener above.
+		fileWatchTimer.setRepeats(true);
+	}
+
+	/**
+	 * Checks whether the open file has been modified on disk since it was last read or
+	 * written by this editor. If so, prompts the user to reload or ignore.
+	 */
+	private void checkForExternalChanges() {
+		if (newFile || openedFile == null || checkingExternalChange) return;
+		if (!openedFile.exists()) return;
+		long currentModified = openedFile.lastModified();
+		if (currentModified == 0 || currentModified == lastKnownModified) return;
+		checkingExternalChange = true;
+		try {
+			String msg = "\"" + openedFile.getName() + "\" has been modified by an external program.\n"
+				+ "Would you like to reload it with the new changes?";
+			int choice = JOptionPane.showOptionDialog(this, msg, "File Modified Externally",
+					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+					new String[]{ "Reload", "Ignore" }, "Reload");
+			if (choice == JOptionPane.YES_OPTION) {
+				try {
+					int caretPos = textArea.getCaretPosition();
+					textArea.setText(new String(Files.readAllBytes(openedFile.toPath()), StandardCharsets.UTF_8));
+					undoManager.discardAllEdits();
+					dirty = false;
+					int docLen = textArea.getDocument().getLength();
+					textArea.setCaretPosition(Math.min(caretPos, docLen));
+				} catch (IOException ex) {
+					JOptionPane.showMessageDialog(this, "Reload failed: " + ex.getMessage());
+				}
+			}
+			// Update the stored timestamp so we don't prompt again for this same change.
+			lastKnownModified = openedFile.lastModified();
+		} finally {
+			checkingExternalChange = false;
+		}
 	}
 
 	/**
@@ -413,10 +471,12 @@ public class FileEditor extends JFrame {
 			openedFile = file;
 			setSyntaxStyleFromFile(file);
 			dirty = false;
+			lastKnownModified = file.lastModified();
 			setTitle(file.getName() + " - File Editor");
 		} else {
 			Files.write(openedFile.toPath(), textArea.getText().getBytes(StandardCharsets.UTF_8));
 			dirty = false;
+			lastKnownModified = openedFile.lastModified();
 			setTitle(openedFile.getName() + " - File Editor");
 		}
 	}
@@ -432,6 +492,7 @@ public class FileEditor extends JFrame {
 		undoManager.discardAllEdits();
 		setSyntaxStyleFromFile(file);
 		dirty = false;
+		lastKnownModified = file.lastModified();
 		setTitle(file.getName() + " - File Editor");
 	}
 
