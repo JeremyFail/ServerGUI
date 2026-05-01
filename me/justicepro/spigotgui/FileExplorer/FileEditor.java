@@ -321,12 +321,17 @@ public class FileEditor extends JFrame {
 	}
 
 	private void showFindBar(boolean withReplace) {
-		if (findBar == null) {
+		boolean isNew = (findBar == null);
+		if (isNew) {
 			findBar = new FindBar();
 			editorLayer.add(findBar, JLayeredPane.PALETTE_LAYER);
 		}
-		if (withReplace && !findBar.replaceVisible) {
-			findBar.setReplaceVisible(true);
+		if (withReplace) {
+			// Ctrl+H / Replace menu: ensure replace row is open
+			if (!findBar.replaceVisible) findBar.setReplaceVisible(true);
+		} else {
+			// Ctrl+F / Find menu: always start in find-only mode
+			if (findBar.replaceVisible) findBar.setReplaceVisible(false);
 		}
 		positionFindBar();
 		findBar.setVisible(true);
@@ -573,9 +578,79 @@ public class FileEditor extends JFrame {
 			matchCaseBtn.addActionListener(e -> onFindTextChanged());
 			wholeWordBtn.addActionListener(e -> onFindTextChanged());
 			regexBtn.addActionListener(e     -> onFindTextChanged());
+
+			// ---- Tab/Shift-Tab cycle (installed after all controls exist) --------
+			installTabCycle();
 		}
 
 		// --- Public API ----------------------------------------------------------
+
+		/**
+		 * Installs Tab / Shift-Tab traversal on every focusable control so the user
+		 * can cycle through the bar without touching the text area.
+		 *
+		 * Full cycle (replace-visible):
+		 *   findField → replaceField → matchCaseBtn → wholeWordBtn → regexBtn
+		 *   → replaceBtn → replaceAllBtn → prevBtn → nextBtn → closeBtn → findField
+		 *
+		 * When replace is hidden the replaceField / replaceBtn / replaceAllBtn are
+		 * skipped dynamically at traversal time.
+		 */
+		private void installTabCycle() {
+			// Full ordered list; replace-only items are filtered at runtime.
+			javax.swing.JComponent[] all = {
+				expandBtn, findField, replaceField,
+				matchCaseBtn, wholeWordBtn, regexBtn,
+				replaceBtn, replaceAllBtn,
+				prevBtn, nextBtn, closeBtn
+			};
+			// Disable default Swing focus traversal on every control so Tab
+			// doesn't escape to the editor or other windows.
+			for (javax.swing.JComponent c : all) {
+				c.setFocusTraversalKeysEnabled(false);
+			}
+			KeyAdapter tabListener = new KeyAdapter() {
+				@Override public void keyPressed(KeyEvent e) {
+					// Ctrl+H inside bar: switch to replace mode
+					if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_H) {
+						e.consume();
+						if (!replaceVisible) setReplaceVisible(true);
+						return;
+					}
+					// Ctrl+F inside bar: switch to find-only mode
+					if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_F) {
+						e.consume();
+						if (replaceVisible) setReplaceVisible(false);
+						return;
+					}
+					if (e.getKeyCode() != KeyEvent.VK_TAB) return;
+					e.consume();
+					// Build visible cycle on the fly
+					java.util.List<javax.swing.JComponent> cycle = new java.util.ArrayList<>();
+					cycle.add(expandBtn);
+					cycle.add(findField);
+					if (replaceVisible) cycle.add(replaceField);
+					cycle.add(matchCaseBtn);
+					cycle.add(wholeWordBtn);
+					cycle.add(regexBtn);
+					if (replaceVisible) { cycle.add(replaceBtn); cycle.add(replaceAllBtn); }
+					cycle.add(prevBtn);
+					cycle.add(nextBtn);
+					cycle.add(closeBtn);
+
+					javax.swing.JComponent src = (javax.swing.JComponent) e.getSource();
+					int idx = cycle.indexOf(src);
+					if (idx < 0) idx = 0;
+					int next = e.isShiftDown()
+							? (idx - 1 + cycle.size()) % cycle.size()
+							: (idx + 1) % cycle.size();
+					cycle.get(next).requestFocusInWindow();
+				}
+			};
+			for (javax.swing.JComponent c : all) {
+				c.addKeyListener(tabListener);
+			}
+		}
 
 		void setReplaceVisible(boolean visible) {
 			replaceVisible = visible;
@@ -765,7 +840,6 @@ public class FileEditor extends JFrame {
 			JToggleButton b = new JToggleButton(text);
 			b.setToolTipText(tooltip);
 			b.setMargin(new Insets(1, 4, 1, 4));
-			b.setFocusPainted(false);
 			b.setFont(b.getFont().deriveFont(Font.BOLD, 11f));
 			b.setPreferredSize(new Dimension(30, 22));
 			return b;
@@ -773,7 +847,26 @@ public class FileEditor extends JFrame {
 
 		/** Ghost-style expand button: no border/fill by default; subtle hover fill; icon-based. */
 		private JButton mkGhostBtn(String tooltip) {
-			JButton b = new JButton();
+			JButton b = new JButton() {
+				@Override
+				protected void paintComponent(Graphics g) {
+					super.paintComponent(g);
+					if (isFocusOwner()) {
+						Graphics2D g2 = (Graphics2D) g.create();
+						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+						Color fc = UIManager.getColor("Component.focusColor");
+						if (fc == null) fc = new Color(0x4D90FE);
+						g2.setColor(fc);
+						g2.setStroke(new java.awt.BasicStroke(1.0f));
+						g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 4, 4);
+						g2.dispose();
+					}
+				}
+			};
+			b.addFocusListener(new java.awt.event.FocusAdapter() {
+				@Override public void focusGained(java.awt.event.FocusEvent e) { b.repaint(); }
+				@Override public void focusLost(java.awt.event.FocusEvent e)   { b.repaint(); }
+			});
 			b.setText("");
 			b.setToolTipText(tooltip);
 			b.setFocusPainted(false);
@@ -814,7 +907,6 @@ public class FileEditor extends JFrame {
 			b.setText("");
 			b.setToolTipText(tooltip);
 			b.setMargin(new Insets(1, 4, 1, 4));
-			b.setFocusPainted(false);
 			b.setPreferredSize(new Dimension(26, 22));
 			return b;
 		}
@@ -834,7 +926,6 @@ public class FileEditor extends JFrame {
 			b.setText("");
 			b.setToolTipText("Close (Escape)");
 			b.setMargin(new Insets(1, 4, 1, 4));
-			b.setFocusPainted(false);
 			b.setPreferredSize(new Dimension(26, 22));
 			return b;
 		}
@@ -851,7 +942,6 @@ public class FileEditor extends JFrame {
 				}
 			};
 			b.setMargin(new Insets(0, 6, 0, 6));
-			b.setFocusPainted(false);
 			b.setFont(b.getFont().deriveFont(Font.PLAIN, 11f));
 			return b;
 		}
