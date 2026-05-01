@@ -168,6 +168,7 @@ public class FileEditor extends JFrame {
 				if (e.isControlDown()) {
 					switch (e.getKeyCode()) {
 						case KeyEvent.VK_S:
+							if (e.isShiftDown()) break; // let Ctrl+Shift+S reach the menu accelerator
 							e.consume();
 							try {
 								saveFile();
@@ -224,14 +225,24 @@ public class FileEditor extends JFrame {
 		menuBar.add(mnFile);
 
 		JMenuItem mntmNew = new JMenuItem("New");
+		mntmNew.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 		mntmNew.addActionListener(e -> doNew());
 		mnFile.add(mntmNew);
 
+		JMenuItem mntmNewWindow = new JMenuItem("New Window");
+		mntmNewWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+		mntmNewWindow.addActionListener(e -> doNewWindow());
+		mnFile.add(mntmNewWindow);
+		
+		mnFile.addSeparator();
+
 		JMenuItem mntmOpen = new JMenuItem("Open");
+		mntmOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
 		mntmOpen.addActionListener(e -> doOpen());
 		mnFile.add(mntmOpen);
 
 		JMenuItem mntmSave = new JMenuItem("Save");
+		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 		mntmSave.addActionListener(e -> {
 			try {
 				saveFile();
@@ -244,16 +255,33 @@ public class FileEditor extends JFrame {
 		});
 		mnFile.add(mntmSave);
 
+		JMenuItem mntmSaveAs = new JMenuItem("Save As...");
+		mntmSaveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+		mntmSaveAs.addActionListener(e -> doSaveAs());
+		mnFile.add(mntmSaveAs);
+
+		mnFile.addSeparator();
+
+		JMenuItem mntmExit = new JMenuItem("Exit");
+		mntmExit.addActionListener(e -> {
+			if (!promptSaveIfDirty()) return;
+			openEditors.remove(FileEditor.this);
+			dispose();
+		});
+		mnFile.add(mntmExit);
+
 		JMenu mnEdit = new JMenu("Edit");
 		menuBar.add(mnEdit);
 
 		JMenuItem mntmUndo = new JMenuItem("Undo");
+		mntmUndo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK));
 		mntmUndo.addActionListener(e -> {
 			if (undoManager.canUndo()) undoManager.undo();
 		});
 		mnEdit.add(mntmUndo);
 
 		JMenuItem mntmRedo = new JMenuItem("Redo");
+		mntmRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK));
 		mntmRedo.addActionListener(e -> {
 			if (undoManager.canRedo()) undoManager.redo();
 		});
@@ -262,14 +290,17 @@ public class FileEditor extends JFrame {
 		mnEdit.addSeparator();
 
 		JMenuItem mntmCut = new JMenuItem("Cut");
+		mntmCut.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_DOWN_MASK));
 		mntmCut.addActionListener(e -> textArea.cut());
 		mnEdit.add(mntmCut);
 
 		JMenuItem mntmCopy = new JMenuItem("Copy");
+		mntmCopy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK));
 		mntmCopy.addActionListener(e -> textArea.copy());
 		mnEdit.add(mntmCopy);
 
 		JMenuItem mntmPaste = new JMenuItem("Paste");
+		mntmPaste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK));
 		mntmPaste.addActionListener(e -> textArea.paste());
 		mnEdit.add(mntmPaste);
 
@@ -376,6 +407,32 @@ public class FileEditor extends JFrame {
 			e1.printStackTrace();
 			JOptionPane.showMessageDialog(FileEditor.this, "Open failed: " + e1.getMessage());
 		}
+	}
+
+	private void doSaveAs() {
+		JFileChooser chooser = new JFileChooser();
+		if (openedFile != null) chooser.setSelectedFile(openedFile);
+		if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+		File file = chooser.getSelectedFile();
+		try {
+			Files.write(file.toPath(), textArea.getText().getBytes(StandardCharsets.UTF_8));
+			newFile = false;
+			openedFile = file;
+			setSyntaxStyleFromFile(file);
+			dirty = false;
+			lastKnownModified = file.lastModified();
+			setTitle(file.getName() + " - File Editor");
+			JOptionPane.showMessageDialog(this, "Saved File");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Save failed: " + e1.getMessage());
+		}
+	}
+
+	private void doNewWindow() {
+		FileEditor newEditor = new FileEditor();
+		newEditor.setLocation(getX() + 30, getY() + 30);
+		newEditor.setVisible(true);
 	}
 
 	private void showFindBar(boolean withReplace) {
