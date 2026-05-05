@@ -15,6 +15,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.File;
@@ -120,15 +121,15 @@ public class FileEditor extends JFrame {
 		setTitle("New - File Editor");
 		setResizable(true);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		addWindowListener(new java.awt.event.WindowAdapter() {
+		addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e) {
+			public void windowClosing(WindowEvent e) {
 				if (!promptSaveIfDirty()) return;
 				openEditors.remove(FileEditor.this);
 				dispose();
 			}
 		});
-		addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+		addWindowFocusListener(new WindowFocusListener() {
 			@Override
 			public void windowGainedFocus(WindowEvent e) {
 				checkForExternalChanges();
@@ -511,6 +512,20 @@ public class FileEditor extends JFrame {
 				break;
 			case "csv":
 				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CSV);
+				break;
+			case "md":
+				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_MARKDOWN);
+				break;
+			case "bat":
+			case "cmd":
+				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_WINDOWS_BATCH);
+				break;
+			case "sh":
+			case "bash":
+				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_UNIX_SHELL);
+				break;
+			case "ini":
+				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_INI);
 				break;
 			default:
 				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
