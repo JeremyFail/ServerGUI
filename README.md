@@ -4,7 +4,7 @@
 
 ServerGUI is a desktop-based GUI for running and administrating Minecraft servers.
 
-This is a fork of [SpigotGUI Remastered](https://www.spigotmc.org/resources/spigotgui-remastered.62417/) by JusticePro, which itself was a remastered edition of [SpigotGUI](https://spigotmc.org/resources/spigotgui.55266/) by JusticePro, which itself was a recreation of [BukkitGUI](https://github.com/Bertware/bukkitgui2/). I have made enhancements to SpigotGUI and will continue to enhance it as time permits.
+This is a fork of [SpigotGUI Remastered](https://www.spigotmc.org/resources/spigotgui-remastered.62417/) by JusticePro, which itself was a remastered edition of [SpigotGUI](https://spigotmc.org/resources/spigotgui.55266/) by JusticePro, which itself was a recreation of [BukkitGUI](https://github.com/Bertware/bukkitgui2/). I have made enhancements to the original SpigotGUI Remastered and will continue to enhance it as time permits.
 
 ## Download
 You can download builds from the [Releases](https://github.com/JeremyFail/ServerGUI/releases) page.
