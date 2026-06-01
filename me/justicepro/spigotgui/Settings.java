@@ -13,7 +13,7 @@ public class Settings implements Serializable {
 	private ServerSettings serverSettings;
 	private Theme theme;
 	private Object fontSize; // Object for legacy binary compat; always Integer in practice
-	private boolean consoleDarkMode = false;
+	private boolean consoleDarkMode = true;
 	private Boolean consoleAdaptiveColors; // boxed: null in old files -> default true applied in readObject
 	private Boolean consoleColorsEnabled;  // boxed: null in old files -> default true applied in readObject
 	private boolean openFilesInSystemDefault = false;
