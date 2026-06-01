@@ -143,6 +143,8 @@ public class SpigotGUI extends JFrame {
 	private JCheckBox chkConsoleScrollSticky;
 	/** When true, sticky is controlled only by the manual checkbox; scroll bar does not update it. */
 	private boolean manualConsoleScrollStickyMode = false;
+	/** True while waiting for bridge/server processes to finish exiting after stop. */
+	private volatile boolean serverStoppingUi = false;
 	/** Current settings (theme, accent, etc.); set in constructor. */
 	private Settings settings;
 	private FileModel fileModel;
@@ -820,6 +822,12 @@ public class SpigotGUI extends JFrame {
 			return;
 		}
 
+		if (serverStoppingUi || Server.isTeardownInProgress()) {
+			JOptionPane.showMessageDialog(SpigotGUI.this,
+					"The server is still shutting down. Please wait a moment before starting again.");
+			return;
+		}
+
 		// Check if a bridge is already running for this JAR.
 		BridgeLockFile existingLock = BridgeLockFile.read(jarFile);
 		if (existingLock != null && Server.isProcessAlive(existingLock.bridgePid)) {
@@ -927,7 +935,9 @@ public class SpigotGUI extends JFrame {
 
 
 	public void setActive(boolean active) throws IOException {
-
+		if (!active) {
+			serverStoppingUi = false;
+		}
 		if (active==true) {
 			serverStatusCircle.setOnline(true);
 			lblServerStatusText.setText("Status: Online");
@@ -938,15 +948,36 @@ public class SpigotGUI extends JFrame {
 		updateServerButtonStates(active);
 	}
 
+	/**
+	 * Shown while bridge/server subprocesses are still exiting after a stop.
+	 * Keeps Start disabled so a fast click does not hit the stale reconnect prompt.
+	 */
+	public void setServerStoppingState(boolean stopping) {
+		serverStoppingUi = stopping;
+		if (stopping) {
+			serverStatusCircle.setOnline(false);
+			lblServerStatusText.setText("Status: Stopping...");
+			updateServerButtonStates(true);
+		}
+	}
+
 	/** Enable/disable Start, Stop, Kill, Restart based on whether the server is running. */
 	private void updateServerButtonStates(boolean serverRunning) {
+		boolean shuttingDown = serverStoppingUi || Server.isTeardownInProgress();
 		Color enabledFg = UIManager.getColor("Button.foreground");
 		if (enabledFg == null) enabledFg = Color.BLACK;
 		Color disabledFg = UIManager.getColor("Button.disabledText");
 		if (disabledFg == null) disabledFg = Color.GRAY;
 		for (JButton btn : new JButton[] { btnStartServer, btnStopServer, btnKillServer, btnRestartServer }) {
 			if (btn == null) continue;
-			boolean enable = (btn == btnStartServer) ? !serverRunning : serverRunning;
+			boolean enable;
+			if (shuttingDown) {
+				enable = false;
+			} else if (btn == btnStartServer) {
+				enable = !serverRunning;
+			} else {
+				enable = serverRunning;
+			}
 			btn.setEnabled(enable);
 			btn.setForeground(enable ? enabledFg : disabledFg);
 			btn.repaint();
@@ -1515,14 +1546,29 @@ public class SpigotGUI extends JFrame {
 				}
 			} else {
 				setTitle("ServerGUI (" + versionTag + ")");
-				if (server != null && server.isBridgeConnected()) {
+				final Server srv = server;
+				final File jar = jarFile;
+				final long bridgePid = srv != null ? srv.getManagedBridgePid() : -1;
+				final java.lang.Process proc = srv != null ? srv.getProcess() : null;
+				if (srv != null && srv.isBridgeConnected()) {
 					// Normal stop - tell the bridge to exit cleanly.
-					server.quitBridge();
+					srv.quitBridge();
 				}
-				try {
-					setActive(false);
-				} catch (IOException e) {
-					e.printStackTrace();
+				if (jar != null) {
+					// Wait for bridge/server PIDs to exit before enabling Start (avoids reconnect race).
+					Server.runAfterTeardown(jar, bridgePid, proc, () -> {
+						try {
+							setActive(false);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					});
+				} else {
+					try {
+						setActive(false);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}

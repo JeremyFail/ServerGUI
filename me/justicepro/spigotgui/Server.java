@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.justicepro.spigotgui.Bridge.BridgeClient;
 import me.justicepro.spigotgui.Bridge.BridgeLockFile;
@@ -45,7 +46,13 @@ public class Server {
 	/** Active bridge connection; non-null when this server is managed via the bridge process. */
 	private BridgeClient bridgeClient;
 
+	/** PID of the bridge process for this session; used to wait for full teardown before re-start. */
+	private volatile long managedBridgePid = -1;
+
 	private Process process;
+
+	/** True while waiting for bridge/server processes to exit after a stop. */
+	private static final AtomicBoolean teardownInProgress = new AtomicBoolean(false);
 	
 	public Server(File jar, String arguments, String switches) {
 		this(jar, arguments, switches, null);
@@ -499,6 +506,88 @@ public class Server {
 	/** Returns true if this server is connected via the bridge process. */
 	public boolean isBridgeConnected() {
 		return bridgeClient != null;
+	}
+
+	/** PID of the bridge JVM launched for this session, or -1 if unknown / direct launch. */
+	public long getManagedBridgePid() {
+		return managedBridgePid;
+	}
+
+	public static boolean isTeardownInProgress() {
+		return teardownInProgress.get();
+	}
+
+	/**
+	 * Waits until no bridge lock, bridge process, or server JAR process blocks a fresh start.
+	 * Best-effort; returns after {@code timeoutMs} even if processes are still exiting.
+	 */
+	public static void awaitStartEnvironmentClear(File jarFile, long bridgePid, Process directProcess, int timeoutMs) {
+		if (jarFile == null) return;
+		long deadline = System.currentTimeMillis() + Math.max(0, timeoutMs);
+		while (System.currentTimeMillis() < deadline) {
+			if (isStartEnvironmentClear(jarFile, bridgePid, directProcess)) {
+				return;
+			}
+			try {
+				Thread.sleep(150);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				break;
+			}
+		}
+		BridgeLockFile.delete(jarFile);
+	}
+
+	/**
+	 * Runs {@code whenClear} on the EDT after processes from the last session have finished exiting.
+	 * Shows a "Stopping..." state and blocks re-start until {@link #awaitStartEnvironmentClear} completes.
+	 */
+	public static void runAfterTeardown(File jarFile, long bridgePid, Process directProcess, Runnable whenClear) {
+		if (!teardownInProgress.compareAndSet(false, true)) {
+			EventQueue.invokeLater(whenClear);
+			return;
+		}
+		EventQueue.invokeLater(() -> {
+			if (SpigotGUI.instance != null) {
+				SpigotGUI.instance.setServerStoppingState(true);
+			}
+		});
+		Thread t = new Thread(() -> {
+			try {
+				awaitStartEnvironmentClear(jarFile, bridgePid, directProcess, 15_000);
+			} finally {
+				BridgeLockFile.delete(jarFile);
+				teardownInProgress.set(false);
+				EventQueue.invokeLater(() -> {
+					if (SpigotGUI.instance != null) {
+						SpigotGUI.instance.setServerStoppingState(false);
+					}
+					whenClear.run();
+				});
+			}
+		}, "server-teardown");
+		t.setDaemon(true);
+		t.start();
+	}
+
+	private static boolean isStartEnvironmentClear(File jarFile, long bridgePid, Process directProcess) {
+		if (directProcess != null && directProcess.isAlive()) {
+			return false;
+		}
+		if (bridgePid >= 0 && isProcessAlive(bridgePid)) {
+			return false;
+		}
+		if (findOrphanedPid(jarFile) >= 0) {
+			return false;
+		}
+		BridgeLockFile lock = BridgeLockFile.read(jarFile);
+		if (lock != null) {
+			if (isProcessAlive(lock.bridgePid)) {
+				return false;
+			}
+			BridgeLockFile.delete(jarFile);
+		}
+		return true;
 	}
 
 	/**
