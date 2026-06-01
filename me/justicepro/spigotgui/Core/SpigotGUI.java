@@ -495,6 +495,8 @@ public class SpigotGUI extends JFrame {
 
 		}
 
+		filesPanel.registerAutoRefreshOnFocus(this, tabbedPane);
+
 		// Flush any messages buffered before the console was ready (e.g. from SettingsIO).
 		// Note: we call appendToConsolePane directly rather than addToConsole because
 		// `instance` is not yet assigned at this point in the constructor (the assignment

@@ -1,9 +1,13 @@
 package me.justicepro.spigotgui.Core;
 
 import java.awt.Component;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 
 import javax.swing.GroupLayout;
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -199,5 +203,36 @@ public class FilesPanel extends JPanel {
 
 	public FileModel getFileModel() {
 		return fileModel;
+	}
+
+	/** Reload the current directory listing from disk. */
+	public void refreshDirectoryListing() {
+		if (fileModel.getCurrentDirectory() != null) {
+			fileModel.refresh();
+		}
+	}
+
+	/**
+	 * Refresh the file list when the user switches to the Files tab or when the
+	 * main window regains focus while the Files tab is selected.
+	 */
+	public void registerAutoRefreshOnFocus(JFrame frame, JTabbedPane tabbedPane) {
+		int filesTabIndex = tabbedPane.indexOfTab("Files");
+		if (filesTabIndex < 0) {
+			return;
+		}
+		tabbedPane.addChangeListener(e -> {
+			if (tabbedPane.getSelectedIndex() == filesTabIndex) {
+				refreshDirectoryListing();
+			}
+		});
+		frame.addWindowFocusListener(new WindowAdapter() {
+			@Override
+			public void windowGainedFocus(WindowEvent e) {
+				if (tabbedPane.getSelectedIndex() == filesTabIndex) {
+					refreshDirectoryListing();
+				}
+			}
+		});
 	}
 }
