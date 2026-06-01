@@ -172,8 +172,9 @@ public class FileEditor extends JFrame {
 							if (e.isShiftDown()) break; // let Ctrl+Shift+S reach the menu accelerator
 							e.consume();
 							try {
-								saveFile();
-								JOptionPane.showMessageDialog(FileEditor.this, "Saved File");
+								if (saveFile()) {
+									JOptionPane.showMessageDialog(FileEditor.this, "Saved File");
+								}
 							} catch (IOException e1) {
 								e1.printStackTrace();
 								JOptionPane.showMessageDialog(FileEditor.this, "Save failed: " + e1.getMessage());
@@ -246,9 +247,9 @@ public class FileEditor extends JFrame {
 		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 		mntmSave.addActionListener(e -> {
 			try {
-				saveFile();
-				dirty = false;
-				JOptionPane.showMessageDialog(FileEditor.this, "Saved File");
+				if (saveFile()) {
+					JOptionPane.showMessageDialog(FileEditor.this, "Saved File");
+				}
 			} catch (IOException e1) {
 				e1.printStackTrace();
 				JOptionPane.showMessageDialog(FileEditor.this, "Save failed: " + e1.getMessage());
@@ -377,9 +378,7 @@ public class FileEditor extends JFrame {
 		if (choice == JOptionPane.CANCEL_OPTION || choice == -1) return false;
 		if (choice == JOptionPane.NO_OPTION) return true; // Don't Save
 		try {
-			saveFile();
-			dirty = false;
-			return true;
+			return saveFile();
 		} catch (IOException ex) {
 			JOptionPane.showMessageDialog(this, "Save failed: " + ex.getMessage());
 			return false;
@@ -533,10 +532,11 @@ public class FileEditor extends JFrame {
 		}
 	}
 
-	public void saveFile() throws IOException {
+	/** @return true if the file was saved, false if the user cancelled the save dialog */
+	public boolean saveFile() throws IOException {
 		if (newFile) {
 			JFileChooser chooser = new JFileChooser();
-			if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+			if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return false;
 			File file = chooser.getSelectedFile();
 			Files.write(file.toPath(), textArea.getText().getBytes(StandardCharsets.UTF_8));
 			newFile = false;
@@ -551,6 +551,7 @@ public class FileEditor extends JFrame {
 			lastKnownModified = openedFile.lastModified();
 			setTitle(openedFile.getName() + " - File Editor");
 		}
+		return true;
 	}
 
 	public void openFile(File file) throws IOException {
