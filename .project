@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>servergui</name>
-	<comment>ServerGUI - Maven project with source at root</comment>
+	<comment>ServerGUI - Maven project (src/main/java)</comment>
 	<projects>
 	</projects>
 	<buildSpec>

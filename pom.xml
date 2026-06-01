@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>me.justicepro</groupId>
+    <groupId>com.failprooftech</groupId>
     <artifactId>servergui</artifactId>
     <version>1.1.5</version>
     <packaging>jar</packaging>
@@ -60,8 +60,7 @@
 
     <build>
         <finalName>ServerGUI ${project.version}</finalName>
-        <!-- Use project root as source root so existing package layout is unchanged -->
-        <sourceDirectory>.</sourceDirectory>
+        <sourceDirectory>src/main/java</sourceDirectory>
         <resources>
             <!-- Package app resources (eula.txt, manuel/, svg/, etc). -->
             <resource>
@@ -87,7 +86,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>me.justicepro.spigotgui.Core.SpigotGUI</mainClass>
+                            <mainClass>com.failprooftech.servergui.Core.ServerGUI</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -106,7 +105,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>me.justicepro.spigotgui.Core.SpigotGUI</mainClass>
+                                    <mainClass>com.failprooftech.servergui.Core.ServerGUI</mainClass>
                                     <manifestEntries>
                                         <Implementation-Version>${project.version}</Implementation-Version>
                                     </manifestEntries>
