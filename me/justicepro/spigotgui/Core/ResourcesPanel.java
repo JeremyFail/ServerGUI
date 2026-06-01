@@ -15,7 +15,7 @@ import me.justicepro.spigotgui.ServerSettings;
 
 /**
  * Tab panel that shows server process resource usage: memory graph, memory stats,
- * configured heap, and CPU usage. Similar to the Paper server JAR's built-in stats view.
+ * and CPU usage. Similar to the Paper server JAR's built-in stats view.
  */
 public class ResourcesPanel extends JPanel {
 
@@ -24,7 +24,6 @@ public class ResourcesPanel extends JPanel {
     private static final long BYTES_PER_MB = 1024 * 1024;
 
     private final int configuredHeapMaxMb;
-    private final int configuredHeapMinMb;
     /** Server JAR path for matching process when shell PID is not available (e.g. Windows Java 8). */
     private final String serverJarPath;
 
@@ -34,7 +33,6 @@ public class ResourcesPanel extends JPanel {
 
     private final JLabel lblCpu;
     private final JLabel lblMemoryUse;
-    private final JLabel lblHeap;
     private final JLabel lblPlayers;
     private final JLabel lblPid;
     private final GraphPanel graphPanel;
@@ -44,9 +42,7 @@ public class ResourcesPanel extends JPanel {
 
     public ResourcesPanel(ServerSettings serverSettings) {
         Object maxRam = serverSettings != null ? serverSettings.getMaxRam() : 1024;
-        Object minRam = serverSettings != null ? serverSettings.getMinRam() : 1024;
         this.configuredHeapMaxMb = toIntMb(maxRam);
-        this.configuredHeapMinMb = toIntMb(minRam);
         File jarFile = serverSettings != null && serverSettings.getJarFile() != null
                 ? serverSettings.getJarFile() : null;
         this.serverJarPath = jarFile != null ? jarFile.getAbsolutePath() : null;
@@ -65,9 +61,6 @@ public class ResourcesPanel extends JPanel {
         lblMemoryUse = new JLabel("Memory use: 0 mb (100% free)");
         lblMemoryUse.setFont(lblMemoryUse.getFont().deriveFont(Font.PLAIN));
         lblMemoryUse.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lblHeap = new JLabel("Heap (allocated): " + configuredHeapMinMb + "–" + configuredHeapMaxMb + " mb");
-        lblHeap.setFont(lblHeap.getFont().deriveFont(Font.PLAIN));
-        lblHeap.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblPlayers = new JLabel("Players: 0");
         lblPlayers.setFont(lblPlayers.getFont().deriveFont(Font.PLAIN));
         lblPlayers.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -80,8 +73,6 @@ public class ResourcesPanel extends JPanel {
         statsSection.add(lblCpu);
         statsSection.add(Box.createVerticalStrut(4));
         statsSection.add(lblMemoryUse);
-        statsSection.add(Box.createVerticalStrut(4));
-        statsSection.add(lblHeap);
         statsSection.add(Box.createVerticalStrut(4));
         statsSection.add(lblPlayers);
 
@@ -113,7 +104,6 @@ public class ResourcesPanel extends JPanel {
     private void updateLabelsWhenOffline() {
         lblCpu.setText("CPU: 0%");
         lblMemoryUse.setText("Memory use: 0 mb (100% free)");
-        lblHeap.setText("Heap (allocated): " + configuredHeapMinMb + "–" + configuredHeapMaxMb + " mb");
         lblPlayers.setText("Players: 0");
         lblPid.setText("PID: N/A");
     }
@@ -216,7 +206,6 @@ public class ResourcesPanel extends JPanel {
         if (serverProcess == null) {
             lblCpu.setText("CPU: Unknown (server process not found)");
             lblMemoryUse.setText("Memory use: Unknown (server process not found)");
-            lblHeap.setText("Heap (allocated): " + configuredHeapMinMb + "–" + configuredHeapMaxMb + " mb");
             lblPlayers.setText("Players: Unknown (server process not found)");
             lblPid.setText("PID: Unknown (server process not found)");
             return;
@@ -241,7 +230,6 @@ public class ResourcesPanel extends JPanel {
                 : 0;
         lblCpu.setText(String.format("CPU: %.1f%%", cpuPercent));
         lblMemoryUse.setText(String.format("Memory use: %d mb (%d%% free)", rssMb, Math.min(100, percentFree)));
-        lblHeap.setText("Heap (allocated): " + configuredHeapMinMb + "–" + configuredHeapMaxMb + " mb");
         int playersCount = SpigotGUI.players != null ? SpigotGUI.players.size() : 0;
         String maxPlayersStr = SpigotGUI.getServerMaxPlayersStatic();
         int maxPlayers = parseMaxPlayers(maxPlayersStr);
