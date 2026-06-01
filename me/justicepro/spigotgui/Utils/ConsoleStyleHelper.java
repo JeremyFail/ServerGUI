@@ -307,7 +307,10 @@ public final class ConsoleStyleHelper {
                     }
                 }
 
-                plain.append(line.charAt(i));
+                char ch = line.charAt(i);
+                if (ch != '\r') {
+                    plain.append(ch);
+                }
                 i++;
             }
 

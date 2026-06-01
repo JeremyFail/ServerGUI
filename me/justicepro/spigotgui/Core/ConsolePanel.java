@@ -1,6 +1,7 @@
 package me.justicepro.spigotgui.Core;
 
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -10,6 +11,8 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -21,14 +24,18 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
 
+import me.justicepro.spigotgui.Utils.ConsoleFindBar;
 import me.justicepro.spigotgui.Utils.ConsoleStyleHelper;
 
 /**
@@ -48,6 +55,9 @@ public class ConsolePanel extends JPanel {
 	private final List<String> commandHistory = new ArrayList<>();
 	private int historyIndex = 0;
 	private String pendingText = "";
+
+	private JLayeredPane consoleLayer;
+	private ConsoleFindBar findBar;
 
 	/**
 	 * @param gui Main frame; must implement console callbacks (send command, scroll, sticky).
@@ -80,6 +90,19 @@ public class ConsolePanel extends JPanel {
 				if (consoleTextPane != null) consoleTextPane.revalidate();
 			}
 		});
+
+		consoleLayer = new JLayeredPane() {
+			@Override
+			public boolean isOptimizedDrawingEnabled() { return false; }
+		};
+		consoleLayer.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				scrollPane.setBounds(0, 0, consoleLayer.getWidth(), consoleLayer.getHeight());
+				if (findBar != null && findBar.isVisible()) positionFindBar();
+			}
+		});
+		consoleLayer.add(scrollPane, JLayeredPane.DEFAULT_LAYER);
 		scrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
@@ -105,6 +128,23 @@ public class ConsolePanel extends JPanel {
 			public void mouseMoved(MouseEvent e) {
 				String url = getLinkUrlAt(consoleTextPane, e.getPoint());
 				consoleTextPane.setCursor(url != null ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+			}
+		});
+
+		getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK), "consoleFind");
+		getActionMap().put("consoleFind", new javax.swing.AbstractAction() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				showFindBar();
+			}
+		});
+		getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "consoleFindClose");
+		getActionMap().put("consoleFindClose", new javax.swing.AbstractAction() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				if (findBar != null && findBar.isVisible()) findBar.close();
 			}
 		});
 
@@ -195,7 +235,7 @@ public class ConsolePanel extends JPanel {
 		setLayout(gl);
 		gl.setHorizontalGroup(
 			gl.createParallelGroup(Alignment.LEADING)
-				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
+				.addComponent(consoleLayer, GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
 				.addGroup(gl.createSequentialGroup()
 					.addGap(10)
 					.addComponent(consoleCommandInput, GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
@@ -212,7 +252,7 @@ public class ConsolePanel extends JPanel {
 		gl.setVerticalGroup(
 			gl.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl.createSequentialGroup()
-					.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
+					.addComponent(consoleLayer, GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl.createParallelGroup(Alignment.CENTER)
 						.addComponent(consoleCommandInput, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
@@ -223,6 +263,42 @@ public class ConsolePanel extends JPanel {
 						.addComponent(chkConsoleScrollSticky))
 					.addGap(3))
 		);
+
+		SwingUtilities.invokeLater(() ->
+				scrollPane.setBounds(0, 0, Math.max(consoleLayer.getWidth(), 1), Math.max(consoleLayer.getHeight(), 1)));
+	}
+
+	private void showFindBar() {
+		if (findBar == null) {
+			findBar = new ConsoleFindBar(consoleTextPane, consoleScrollPane, consoleStyleHelper);
+			consoleLayer.add(findBar, JLayeredPane.PALETTE_LAYER);
+		}
+		positionFindBar();
+		if (consoleTextPane.isFocusOwner()) {
+			String sel = consoleTextPane.getSelectedText();
+			if (sel != null && !sel.isEmpty()) {
+				findBar.setFindText(sel);
+			} else {
+				findBar.clearFindText();
+			}
+		} else {
+			findBar.clearFindText();
+		}
+		findBar.setVisible(true);
+		findBar.refreshSearch();
+		findBar.focusFindField();
+	}
+
+	/** Called when console dark/light mode changes so find highlights stay readable. */
+	public void updateFindBarTheme() {
+		if (findBar != null) findBar.updateHighlightColor();
+	}
+
+	private void positionFindBar() {
+		Dimension pref = findBar.getPreferredSize();
+		int barX = Math.max(0, consoleLayer.getWidth() - pref.width - 10);
+		findBar.setBounds(barX, 10, pref.width, pref.height);
+		findBar.revalidate();
 	}
 
 	@SuppressWarnings("deprecation")

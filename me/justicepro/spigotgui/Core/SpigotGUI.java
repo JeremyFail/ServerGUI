@@ -97,6 +97,7 @@ public class SpigotGUI extends JFrame {
 	private static final int MIN_SIZE_BASE_HEIGHT = 400;
 	private JPanel contentPane;
 
+	private ConsolePanel consolePanel;
 	private JTextPane consoleTextPane;
 	private ConsoleStyleHelper consoleStyleHelper;
 	/** Scroll pane wrapping the console text pane; used for stick-to-bottom behavior. */
@@ -295,7 +296,7 @@ public class SpigotGUI extends JFrame {
 		// --- Console tab: built by ConsolePanel; we keep refs for addToConsole and Settings ---
 		int fontSize = settings.getFontSize();
 		Font consoleFont = getConsoleMonospaceFont(fontSize);
-		ConsolePanel consolePanel = new ConsolePanel(this, consoleFont, settings.isConsoleDarkMode(),
+		consolePanel = new ConsolePanel(this, consoleFont, settings.isConsoleDarkMode(),
 				settings.isConsoleColorsEnabled(), settings.isConsoleWrapWordBreakOnly(),
 				settings.isManualConsoleScrollSticky(), consoleStickToBottom);
 		consoleTextPane = consolePanel.getConsoleTextPane();
@@ -1466,6 +1467,7 @@ public class SpigotGUI extends JFrame {
 	}
 	void onConsoleDarkModeChanged(boolean dark) {
 		if (consoleStyleHelper != null) consoleStyleHelper.setDarkMode(dark);
+		if (consolePanel != null) consolePanel.updateFindBarTheme();
 	}
 	void onConsoleAdaptiveColorsChanged(boolean adaptive) {
 		if (consoleStyleHelper != null) consoleStyleHelper.setAdaptiveColors(adaptive);
