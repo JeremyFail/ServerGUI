@@ -112,6 +112,7 @@ public final class BridgeClient {
         // Tracks whether we have ever received STATUS STOPPED, so we know a
         // subsequent STATUS RUNNING is a relaunch rather than the initial state.
         boolean everStopped = false;
+        boolean sawRunning = false;
         try {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -119,6 +120,7 @@ public final class BridgeClient {
                     String status = line.substring(7);
                     if ("RUNNING".equals(status)) {
                         serverRunning = true;
+                        sawRunning = true;
                         // Only fire the started callback on a relaunch (not the initial STATUS RUNNING).
                         if (everStopped && onServerStarted != null) {
                             onServerStarted.run();
@@ -157,6 +159,20 @@ public final class BridgeClient {
             // Socket closed
         } finally {
             connected = false;
+            // If the bridge connection drops unexpectedly, treat it as a stop so the GUI
+            // doesn't remain stuck in a "running" state.
+            boolean wasRunning = serverRunning;
+            serverRunning = false;
+            serverPid = -1;
+            // If STATUS STOPPED already ran the callback, do not fire again on disconnect.
+            if (!everStopped && (wasRunning || sawRunning)) {
+                if (onServerStopped != null) {
+                    onServerStopped.run();
+                } else {
+                    SpigotGUI.addToConsole(SpigotGUI.getPrefix() + ConsoleColor.RED
+                            + "[Bridge] Connection lost - assuming server stopped." + ConsoleColor.RESET);
+                }
+            }
             try { if (socket != null) socket.close(); } catch (IOException ignored) { }
         }
     }
