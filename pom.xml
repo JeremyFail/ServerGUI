@@ -6,7 +6,7 @@
 
     <groupId>me.justicepro</groupId>
     <artifactId>servergui</artifactId>
-    <version>1.1.3</version>
+    <version>1.1.5</version>
     <packaging>jar</packaging>
     <name>ServerGUI</name>
     <description>Desktop GUI for running and administrating Minecraft servers</description>
