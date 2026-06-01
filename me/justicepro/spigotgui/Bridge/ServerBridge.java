@@ -55,7 +55,10 @@ public final class ServerBridge {
     private final String authToken;
     private final int listenPort;
     private final File serverJar;
-    private final String[] serverArgs; // everything after the JAR path
+    private final List<String> serverJvmSwitches; // tokens passed before our managed flags
+    /** Optional java/javaw executable path to use for the server process. */
+    private final String serverJavaExe;
+    private final String[] serverArgs; // everything after the JAR path (and after "--" if present)
     /**
      * Charset used when writing commands to the server's stdin pipe.
      * Defaults based on JAR name: Spigot/CraftBukkit use ISO-8859-1 because their bundled
@@ -80,10 +83,12 @@ public final class ServerBridge {
     private volatile boolean relaunchRequested = false;
     private volatile boolean quitRequested = false;
 
-    private ServerBridge(String authToken, int listenPort, File serverJar, String[] serverArgs) {
+    private ServerBridge(String authToken, int listenPort, File serverJar, String serverJavaExe, List<String> serverJvmSwitches, String[] serverArgs) {
         this.authToken = authToken;
         this.listenPort = listenPort;
         this.serverJar = serverJar;
+        this.serverJavaExe = (serverJavaExe != null && !serverJavaExe.trim().isEmpty()) ? serverJavaExe.trim() : null;
+        this.serverJvmSwitches = (serverJvmSwitches != null) ? serverJvmSwitches : new ArrayList<>();
         this.serverArgs = serverArgs;
         // On Windows, Spigot/CraftBukkit's bundled jline2 reads the stdin pipe using the
         // platform's ANSI/OEM codepage via native Win32 APIs, regardless of any JVM flags.
@@ -101,7 +106,7 @@ public final class ServerBridge {
      * Args: {@code --bridge <token> <port> <jarPath> [serverArgs...]}
      */
     public static void main(String[] args) {
-        // Parse: --bridge <token> <port> <jarPath> [server args...]
+        // Parse: --bridge <token> <port> <jarPath> [--server-java <path>] [--server-switch <token> ...] [--] [server args...]
         if (args.length < 4 || !"--bridge".equals(args[0])) {
             System.err.println("[ServerGUI Bridge] Invalid arguments. Expected: --bridge <token> <port> <jarPath> [serverArgs...]");
             System.exit(1);
@@ -116,10 +121,48 @@ public final class ServerBridge {
             return;
         }
         File jar = new File(args[3]);
-        String[] serverArgs = new String[args.length - 4];
-        System.arraycopy(args, 4, serverArgs, 0, serverArgs.length);
 
-        ServerBridge bridge = new ServerBridge(token, port, jar, serverArgs);
+        String serverJavaExe = null;
+        List<String> serverSwitches = new ArrayList<>();
+
+        int i = 4;
+        // Optional flags before "--"
+        while (i < args.length) {
+            String a = args[i];
+            if ("--".equals(a)) {
+                i++;
+                break;
+            }
+            if ("--server-java".equals(a)) {
+                if (i + 1 >= args.length) {
+                    System.err.println("[ServerGUI Bridge] Missing value for --server-java");
+                    System.exit(1);
+                }
+                serverJavaExe = args[i + 1];
+                i += 2;
+                continue;
+            }
+            if ("--server-switch".equals(a)) {
+                if (i + 1 >= args.length) {
+                    System.err.println("[ServerGUI Bridge] Missing value for --server-switch");
+                    System.exit(1);
+                }
+                String sw = args[i + 1];
+                if (sw != null && !sw.trim().isEmpty()) serverSwitches.add(sw.trim());
+                i += 2;
+                continue;
+            }
+            // Unknown token: treat as start of server args (backwards compatible with older invocations).
+            break;
+        }
+
+        int remaining = Math.max(0, args.length - i);
+        String[] serverArgs = new String[remaining];
+        if (remaining > 0) {
+            System.arraycopy(args, i, serverArgs, 0, remaining);
+        }
+
+        ServerBridge bridge = new ServerBridge(token, port, jar, serverJavaExe, serverSwitches, serverArgs);
         bridge.run();
     }
 
@@ -151,6 +194,9 @@ public final class ServerBridge {
             serverRunning = false;
             currentServerPid = -1;
             broadcast("STATUS STOPPED");
+            // Drop the lock as soon as the server JVM exits so a quick re-start does not
+            // treat the still-shutting-down bridge as an existing session to reconnect to.
+            BridgeLockFile.delete(serverJar);
 
             if (quitRequested) break;
 
@@ -224,16 +270,26 @@ public final class ServerBridge {
 
     private List<String> buildServerCommand() {
         List<String> cmd = new ArrayList<>();
-        // Resolve java executable from our own runtime so we use the same JVM by default.
-        String home = System.getProperty("java.home");
-        String javaExe = "java";
-        if (home != null) {
-            File win = new File(home, "bin/java.exe");
-            File nix = new File(home, "bin/java");
-            if (win.isFile()) javaExe = win.getAbsolutePath();
-            else if (nix.isFile()) javaExe = nix.getAbsolutePath();
+        // Resolve java executable: prefer explicit server-java; else fall back to our own runtime.
+        String javaExe = serverJavaExe;
+        if (javaExe == null || javaExe.isEmpty()) {
+            String home = System.getProperty("java.home");
+            javaExe = "java";
+            if (home != null) {
+                File win = new File(home, "bin/java.exe");
+                File nix = new File(home, "bin/java");
+                if (win.isFile()) javaExe = win.getAbsolutePath();
+                else if (nix.isFile()) javaExe = nix.getAbsolutePath();
+            }
         }
         cmd.add(javaExe);
+
+        // Apply any user-provided server JVM switches first (e.g. -Xmx, -XX flags).
+        if (serverJvmSwitches != null && !serverJvmSwitches.isEmpty()) {
+            for (String sw : serverJvmSwitches) {
+                if (sw != null && !sw.trim().isEmpty()) cmd.add(sw.trim());
+            }
+        }
         cmd.add("-Dnet.kyori.ansi.colorLevel=truecolor");
         cmd.add("-Dfile.encoding=UTF-8");
         cmd.add("-Dstdout.encoding=UTF-8");

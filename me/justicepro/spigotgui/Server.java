@@ -553,10 +553,12 @@ public class Server {
 		Server s = new Server(jar, arguments != null ? arguments : "", switches != null ? switches : "", customJvmPath);
 		BridgeClient client = new BridgeClient("127.0.0.1", lock.port, lock.token);
 		client.setOnServerStopped(() -> {
+			BridgeLockFile.delete(jar);
 			for (Module module : ModuleManager.modules) {
 				module.onServerClosed();
 			}
 		});
+		s.managedBridgePid = lock.bridgePid;
 		client.setOnServerStarted(() -> {
 			EventQueue.invokeLater(() -> {
 				try {
@@ -599,22 +601,36 @@ public class Server {
 		String token = ServerBridge.generateToken();
 
 		// Build bridge command:
-		// <java> [server JVM switches] -jar <selfJar> --bridge <token> <port> <serverJar> [arguments]
+		// <java> -jar <selfJar> --bridge <token> <port> <serverJar>
+		//   [--server-java <path>] [--server-switch <token> ...] [--] [arguments...]
+		//
+		// Important: server JVM switches and custom server JVM path must be passed *after* --bridge,
+		// otherwise they'd apply to the bridge JVM itself and never reach the actual server process.
 		List<String> cmd = new ArrayList<>();
 		cmd.add(javaExe);
-		// Pass the server JVM switches to the bridge so it can forward them to the server.
-		// We re-use the existing normalization path by appending them here.
-		if (switches != null && !switches.trim().isEmpty()) {
-			for (String sw : switches.trim().split("\\s+")) {
-				if (!sw.isEmpty()) cmd.add(sw);
-			}
-		}
 		cmd.add("-jar");
 		cmd.add(selfJar.getAbsolutePath());
 		cmd.add("--bridge");
 		cmd.add(token);
 		cmd.add(String.valueOf(port));
 		cmd.add(serverJar.getAbsolutePath());
+
+		// Forward server JVM path + switches to the bridge explicitly.
+		if (customJvmPath != null && !customJvmPath.trim().isEmpty()) {
+			cmd.add("--server-java");
+			cmd.add(customJvmPath.trim());
+		}
+		if (switches != null && !switches.trim().isEmpty()) {
+			for (String sw : switches.trim().split("\\s+")) {
+				if (sw != null && !sw.isEmpty()) {
+					cmd.add("--server-switch");
+					cmd.add(sw);
+				}
+			}
+		}
+
+		// Separator so server args cannot be mistaken for bridge flags.
+		cmd.add("--");
 		if (arguments != null && !arguments.trim().isEmpty()) {
 			for (String arg : arguments.trim().split("\\s+")) {
 				if (!arg.isEmpty()) cmd.add(arg);
@@ -671,6 +687,7 @@ public class Server {
 		}
 
 		s.bridgeClient = client;
+		s.managedBridgePid = bridgePid;
 		return s;
 	}
 
