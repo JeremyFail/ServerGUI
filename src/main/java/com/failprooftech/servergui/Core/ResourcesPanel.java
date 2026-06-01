@@ -58,7 +58,7 @@ public class ResourcesPanel extends JPanel {
         lblCpu.setMinimumSize(new Dimension(lblCpu.getFontMetrics(lblCpu.getFont()).stringWidth("CPU: 100.0%") + 8, lblCpu.getPreferredSize().height));
         lblCpu.setFont(lblCpu.getFont().deriveFont(Font.PLAIN));
         lblCpu.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lblMemoryUse = new JLabel("Memory use: 0 mb (100% free)");
+        lblMemoryUse = new JLabel("Memory use: 0 mb");
         lblMemoryUse.setFont(lblMemoryUse.getFont().deriveFont(Font.PLAIN));
         lblMemoryUse.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblPlayers = new JLabel("Players: 0");
@@ -103,7 +103,7 @@ public class ResourcesPanel extends JPanel {
 
     private void updateLabelsWhenOffline() {
         lblCpu.setText("CPU: 0%");
-        lblMemoryUse.setText("Memory use: 0 mb (100% free)");
+        lblMemoryUse.setText("Memory use: 0 mb");
         lblPlayers.setText("Players: 0");
         lblPid.setText("PID: N/A");
     }
@@ -225,11 +225,8 @@ public class ResourcesPanel extends JPanel {
         previousProcessSnapshot = serverProcess;
         double cpuPercent = cpuLoad * 100.0;
 
-        int percentFree = configuredHeapMaxMb > 0
-                ? (int) Math.round(100.0 * Math.max(0, configuredHeapMaxMb - rssMb) / configuredHeapMaxMb)
-                : 0;
         lblCpu.setText(String.format("CPU: %.1f%%", cpuPercent));
-        lblMemoryUse.setText(String.format("Memory use: %d mb (%d%% free)", rssMb, Math.min(100, percentFree)));
+        lblMemoryUse.setText(String.format("Memory use: %d mb", rssMb));
         int playersCount = ServerGUI.players != null ? ServerGUI.players.size() : 0;
         String maxPlayersStr = ServerGUI.getServerMaxPlayersStatic();
         int maxPlayers = parseMaxPlayers(maxPlayersStr);
