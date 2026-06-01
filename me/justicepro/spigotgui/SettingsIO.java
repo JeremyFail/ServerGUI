@@ -147,7 +147,7 @@ public class SettingsIO {
                 .serverSettings(parseServerSettings(root.at("serverSettings")))
                 .theme(theme)
                 .fontSize(num(root, "fontSize", 13))
-                .consoleDarkMode(bool(root, "consoleDarkMode", false))
+                .consoleDarkMode(bool(root, "consoleDarkMode", true))
                 .consoleColorsEnabled(bool(root, "consoleColorsEnabled", true))
                 .openFilesInSystemDefault(bool(root, "openFilesInSystemDefault", false))
                 .fileEditorTheme(str(root,   "fileEditorTheme", "default"))

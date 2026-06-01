@@ -73,7 +73,7 @@ public class Settings implements Serializable {
 		private ServerSettings serverSettings            = ServerSettings.getDefault();
 		private Theme          theme                     = Theme.getDefaultForPlatform();
 		private int            fontSize                  = 13;
-		private boolean        consoleDarkMode           = false;
+		private boolean        consoleDarkMode           = true;
 		private boolean        consoleAdaptiveColors     = true;
 		private boolean        consoleColorsEnabled      = true;
 		private boolean        openFilesInSystemDefault  = false;
